@@ -140,11 +140,12 @@ public class Enhancer {
 			boolean firstTest = true;
 
 			for (int i = 0; i < logs.size(); i++) {
+				//remove each statement even if it's not a test to maintain order
+				b.remove(tests.get(i));
+				
 				LogCat logValues = null;
 				// if log != null then the statement is a test and we have to enhance the class
 				if ((logValues = logs.get(i)) != null) {
-					b.remove(tests.get(i));
-					
 					if (firstTest) {
 						firstTest = false;
 						b.addStatement(firstTestDate);
@@ -163,7 +164,8 @@ public class Enhancer {
 					b.addStatement(dumpScreen);
 					b.addStatement(tests.get(i));
 					b.addStatement(tryStmt);
-				}
+				} else
+					b.addStatement(tests.get(i));
 			}
 		}
 	}

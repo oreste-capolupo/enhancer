@@ -159,6 +159,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
+        onView(withTagValue("abc")).perform(doubleClick());
     }
 
     // for clicking exact coordinates (identify a parent view, then perform clickXY

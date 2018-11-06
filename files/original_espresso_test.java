@@ -120,8 +120,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
 
         onView(withId(R.id.settings_view)).perform(click());       
 
-
-
+        
+        onView(withTagValue("abc")).perform(doubleClick());
 
     }
 
