@@ -10,16 +10,10 @@ import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.TryStmt;
-import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
@@ -151,6 +145,7 @@ public class Enhancer {
 		private void enhanceMethod(BlockStmt b, List<LogCat> logs, NodeList<Statement> tests) {
 			Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
 			Statement date = JavaParser.parseStatement("now = new Date();");
+			Statement firstTestActivity = JavaParser.parseStatement("Activity activity = getActivityInstance();");
 			Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
 			Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
 			Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
@@ -164,14 +159,16 @@ public class Enhancer {
 				// if log != null then the statement is a test and we have to enhance the class
 				if ((logValues = logs.get(i)) != null) {
 					b.remove(tests.get(i));
+					
 					if (firstTest) {
 						firstTest = false;
 						b.addStatement(firstTestDate);
-					} else
+						b.addStatement(firstTestActivity);
+					} else {
 						b.addStatement(date);
-
-					b.addStatement(activity);
-
+						b.addStatement(activity);
+					}
+						
 					Statement log = JavaParser.parseStatement("Log.d(\"touchtest\", now.getTime() + \", \" + \""
 							+ logValues.getOperation() + "\" +" + " \", \" + \"" + logValues.getProperty()
 							+ "\" + \", \" + \"" + logValues.getAction() + "\");");
@@ -179,8 +176,8 @@ public class Enhancer {
 
 					b.addStatement(screenCapture);
 					b.addStatement(dumpScreen);
-					b.addStatement(tryStmt);
 					b.addStatement(tests.get(i));
+					b.addStatement(tryStmt);
 				}
 			}
 		}
