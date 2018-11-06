@@ -8,13 +8,21 @@ import org.json.JSONObject;
 
 import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.TryStmt;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
+import com.github.javaparser.symbolsolver.javaparser.Navigator;
 import com.google.gson.Gson;
 
 import it.enhancer.enhancer.withIdModel.*;
@@ -29,8 +37,10 @@ public class Enhancer {
 		
 		addImportsInCompilationUnit(cu);
 		
+		addPrivateField(cu);
+		
 		//creates the getActivityInstanceMethod
-		addActivityInstanceMethod();
+		addActivityInstanceMethod(cu);
 		
 		// visit and print the methods names
 		cu.accept(new MethodVisitor(), null);
@@ -40,9 +50,17 @@ public class Enhancer {
 		PrintWriter w = new PrintWriter("enhanced_espresso_test.java", "UTF-8");
 		w.print(cu.toString());
 		w.close();
-
+		
 		// prints the resulting compilation unit to default system output
 		// System.out.println(cu.toString());
+	}
+
+	private static void addPrivateField(CompilationUnit cu) {
+		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
+//		VariableDeclarator vd = new VariableDeclarator(JavaParser.parseType("Activity"), "currentActivity"); 
+		BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
+		ci.getMembers().add(0, field);
+		System.out.println("Size: \n"+ci.getMembers().size());
 	}
 
 	private static void addImportsInCompilationUnit(CompilationUnit cu) {
@@ -56,7 +74,10 @@ public class Enhancer {
 		cu.addImport("android.util.Log", false, false);
 	}
 
-	private static void addActivityInstanceMethod() {
+	private static void addActivityInstanceMethod(CompilationUnit cu) {
+		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
+		MethodDeclaration md = new MethodDeclaration();
+		
 		String body = "{"
 				+ "getInstrumentation().runOnMainSync(new Runnable() {\n" + 
 				"            public void run() {\n" + 
@@ -70,14 +91,14 @@ public class Enhancer {
 				"        return currentActivity;"
 				+ "}";
 		
-		MethodDeclaration md = new MethodDeclaration();
 		md.setName("getActivityInstance");
 		md.setPublic(true);
 		md.setType("Activity");
 		BlockStmt b = JavaParser.parseBlock(body);
 		md.setBody(b);
 		
-		System.out.println(md.toString());
+		//adds the method at the bottom. The private field "currentActivity" is included in the members
+		ci.getMembers().add(ci.getMembers().size(), md);
 	}
 
 	private static class MethodVisitor extends ModifierVisitor<Void> {
@@ -120,14 +141,14 @@ public class Enhancer {
 				}
 
 				if (logs.size() > 0 && tests.size() > 0)
-					modifyMethod(n, logs, tests);
+					enhanceMethod(n, logs, tests);
 
 				// }
 			}
 			return n;
 		}
 
-		private void modifyMethod(BlockStmt b, List<LogCat> logs, NodeList<Statement> tests) {
+		private void enhanceMethod(BlockStmt b, List<LogCat> logs, NodeList<Statement> tests) {
 			Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
 			Statement date = JavaParser.parseStatement("now = new Date();");
 			Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
@@ -140,7 +161,7 @@ public class Enhancer {
 
 			for (int i = 0; i < logs.size(); i++) {
 				LogCat logValues = null;
-				// if log != null then the statement is a test and we have to enanche the class
+				// if log != null then the statement is a test and we have to enhance the class
 				if ((logValues = logs.get(i)) != null) {
 					b.remove(tests.get(i));
 					if (firstTest) {

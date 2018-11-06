@@ -193,4 +193,17 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
             }
         };
     }
+
+    public Activity getActivityInstance() {
+        getInstrumentation().runOnMainSync(new Runnable() {
+
+            public void run() {
+                Collection resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(RESUMED);
+                if (resumedActivities.iterator().hasNext()) {
+                    currentActivity = (Activity) resumedActivities.iterator().next();
+                }
+            }
+        });
+        return currentActivity;
+    }
 }

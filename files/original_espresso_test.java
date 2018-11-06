@@ -86,10 +86,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
 
-
 public class BaseEspressoTest extends BaseAndroidTestCase {
-
-    private Activity currentActivity;
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class, false, false);
