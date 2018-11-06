@@ -1,39 +1,39 @@
 package it.enhancer.enhancer;
 
 public class LogCat {
-	private String operation;
-	private String property;
-	public String action;
+	private String searchType;
+	private String searchKw;
+	public String interactionType;
 	
-	public LogCat(String operation, String identifier, String action) {
+	public LogCat(String searchType, String searchKw, String interactionType) {
 		super();
-		this.operation = operation;
-		this.property = identifier;
-		this.action = action;
+		this.searchType = searchType;
+		this.searchKw = searchKw;
+		this.interactionType = interactionType;
 	}
 
-	public String getOperation() {
-		return operation;
+	public String getSearchType() {
+		return searchType;
 	}
 
-	public void setOperation(String operation) {
-		this.operation = operation;
+	public void setSearchType(String searchType) {
+		this.searchType = searchType;
 	}
 
-	public String getProperty() {
-		return property;
+	public String getSearchKw() {
+		return searchKw;
 	}
 
-	public void setProperty(String property) {
-		this.property = property;
+	public void setSearchKw(String searchKw) {
+		this.searchKw = searchKw;
 	}
 
-	public String getAction() {
-		return action;
+	public String getInteractionType() {
+		return interactionType;
 	}
 
-	public void setAction(String action) {
-		this.action = action;
+	public void setInteractionType(String interactionType) {
+		this.interactionType = interactionType;
 	}
 	
 	

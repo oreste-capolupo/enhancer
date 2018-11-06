@@ -51,10 +51,9 @@ public class Enhancer {
 
 	private static void addPrivateField(CompilationUnit cu) {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
-//		VariableDeclarator vd = new VariableDeclarator(JavaParser.parseType("Activity"), "currentActivity"); 
+		
 		BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
 		ci.getMembers().add(0, field);
-		System.out.println("Size: \n"+ci.getMembers().size());
 	}
 
 	private static void addImportsInCompilationUnit(CompilationUnit cu) {
@@ -91,7 +90,7 @@ public class Enhancer {
 		BlockStmt b = JavaParser.parseBlock(body);
 		md.setBody(b);
 		
-		//adds the method at the bottom. The private field "currentActivity" is included in the members
+		//adds the method at the bottom of the class. The private field "currentActivity" is included in the members
 		ci.getMembers().add(ci.getMembers().size(), md);
 	}
 
@@ -103,23 +102,11 @@ public class Enhancer {
 			 * for all methods in this CompilationUnit, including inner class methods
 			 */
 			super.visit(n, arg);
-			//
-			// BlockStmt b = new BlockStmt();
-			//
-			//
-			// // check if the method as a body
-			// if (n.getBody().isPresent()) {
-			// // get the body of the current method
-			// b = n.getBody().get();
-
-			// get all statements in the current method
 			if (n.toString().contains("onView")) {
 
 				NodeList<Statement> nodes = n.getStatements();
 				NodeList<Statement> tests = new NodeList<Statement>();
 				List<LogCat> logs = new ArrayList<LogCat>();
-				// System.out.println(n.getName());
-				// System.out.println(b);
 
 				// the first part of this model is the same for these viewMatchers( withId,
 				// withText, withContentDescription )
@@ -136,8 +123,6 @@ public class Enhancer {
 
 				if (logs.size() > 0 && tests.size() > 0)
 					enhanceMethod(n, logs, tests);
-
-				// }
 			}
 			return n;
 		}
@@ -170,8 +155,8 @@ public class Enhancer {
 					}
 						
 					Statement log = JavaParser.parseStatement("Log.d(\"touchtest\", now.getTime() + \", \" + \""
-							+ logValues.getOperation() + "\" +" + " \", \" + \"" + logValues.getProperty()
-							+ "\" + \", \" + \"" + logValues.getAction() + "\");");
+							+ logValues.getSearchType() + "\" +" + " \", \" + \"" + logValues.getSearchKw()
+							+ "\" + \", \" + \"" + logValues.getInteractionType() + "\");");
 					b.addStatement(log);
 
 					b.addStatement(screenCapture);
@@ -201,9 +186,9 @@ public class Enhancer {
 			logValues = getLog(json, matcher);
 
 			if (logValues != null) {
-				System.out.println(logValues.getOperation());
-				System.out.println(logValues.getProperty());
-				System.out.println(logValues.getAction());
+				System.out.println(logValues.getSearchType());
+				System.out.println(logValues.getSearchKw());
+				System.out.println(logValues.getInteractionType());
 			}
 
 			// System.out.println(m.getExpression().getScope().getArguments().get(0).getArguments().get(0).getName().getIdentifier());
@@ -221,19 +206,19 @@ public class Enhancer {
 		Gson gson = new Gson();
 		LogCat log = null;
 
-		String operation = ViewMatcher.getOperation(matcher);
-		String property = "";
-		String action = "";
+		String searchType = ViewMatcher.getSearchType(matcher);
+		String searchKw = "";
+		String interactionType = "";
 
 		switch (matcher) {
 		case "withId":
 			// using withId model
 			WithIdModel im = gson.fromJson(json, WithIdModel.class);
 			it.enhancer.enhancer.withIdModel.Argument ia = im.getExpression().getScope().getArguments().get(0);
-			property = ia.getArguments().get(0).getName().getIdentifier();
+			searchKw = ia.getArguments().get(0).getName().getIdentifier();
 			// perform and click
 			// System.out.println(im.getExpression().getName().getIdentifier());
-			action = im.getExpression().getArguments().get(0).getName().getIdentifier();
+			interactionType = im.getExpression().getArguments().get(0).getName().getIdentifier();
 			break;
 
 		case "withText":
@@ -241,16 +226,16 @@ public class Enhancer {
 			// using withText model
 			WithTextModel tm = gson.fromJson(json, WithTextModel.class);
 			it.enhancer.enhancer.withTextModel.Argument ta = tm.getExpression().getScope().getArguments().get(0);
-			property = ta.getArguments().get(0).getValue();
+			searchKw = ta.getArguments().get(0).getValue();
 
 			// perform and click
 			// System.out.println(tm.getExpression().getName().getIdentifier());
-			action = tm.getExpression().getArguments().get(0).getName().getIdentifier();
+			interactionType = tm.getExpression().getArguments().get(0).getName().getIdentifier();
 			break;
 		}
 
-		if (!operation.isEmpty() && !property.isEmpty() && !action.isEmpty()) {
-			log = new LogCat(operation, property, action);
+		if (!searchType.isEmpty() && !searchKw.isEmpty() && !interactionType.isEmpty()) {
+			log = new LogCat(searchType, searchKw, interactionType);
 		}
 		return log;
 	}

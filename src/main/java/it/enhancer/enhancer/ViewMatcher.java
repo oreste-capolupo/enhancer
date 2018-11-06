@@ -13,7 +13,7 @@ public enum ViewMatcher {
 		return value;
 	}
 	
-	public static String getOperation(String matcher) {
+	public static String getSearchType(String matcher) {
 		Object[] vm = ViewMatcher.values();
 
 		for (Object o : vm)
