@@ -4,7 +4,7 @@ package it.enhancer.enhancer.withTextModel;
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.builder.ToStringBuilder;
+ 
 
 public class Expression {
 
@@ -51,11 +51,6 @@ public class Expression {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this).append("scope", scope).append("name", name).append("arguments", arguments).append("type", type).toString();
     }
 
 }

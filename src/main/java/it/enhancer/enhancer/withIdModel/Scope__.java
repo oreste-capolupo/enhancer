@@ -3,7 +3,6 @@ package it.enhancer.enhancer.withIdModel;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 public class Scope__ {
 
@@ -28,11 +27,6 @@ public class Scope__ {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this).append("name", name).append("type", type).toString();
     }
 
 }

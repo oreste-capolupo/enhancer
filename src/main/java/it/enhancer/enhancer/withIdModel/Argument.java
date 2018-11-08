@@ -4,7 +4,6 @@ package it.enhancer.enhancer.withIdModel;
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 public class Argument {
 
@@ -40,11 +39,6 @@ public class Argument {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this).append("name", name).append("arguments", arguments).append("type", type).toString();
     }
 
 }

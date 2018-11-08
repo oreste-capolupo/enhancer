@@ -3,7 +3,6 @@ package it.enhancer.enhancer.withTextModel;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 public class Name_ {
 
@@ -29,10 +28,4 @@ public class Name_ {
     public void setType(String type) {
         this.type = type;
     }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this).append("identifier", identifier).append("type", type).toString();
-    }
-
 }
