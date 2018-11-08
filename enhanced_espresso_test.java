@@ -109,6 +109,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
+        onView(withId(R.id.fab_expand_menu_button)).perform(typeText(0), click()).check(doesNotExist(), doesNotExist());
+        onView(allOf(withText("About"), isDisplayed())).perform(click());
         now = new Date();
         activity = getActivityInstance();
         Log.d("touchtest", now.getTime() + ", " + "text" + ", " + "Text note" + ", " + "click");
@@ -159,7 +161,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
-        onView(withTagValue("abc")).perform(doubleClick());
     }
 
     // for clicking exact coordinates (identify a parent view, then perform clickXY

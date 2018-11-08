@@ -1,11 +1,11 @@
 package it.enhancer.enhancer;
 
-public enum ViewMatcher {
+public enum ViewMatchers {
 	withId("id"), withText("text"), withContentDescription("content-desc");
 	
 	private String value;
 	
-	ViewMatcher(String value) {
+	ViewMatchers(String value) {
 		this.value = value;
 	}
 	
@@ -14,11 +14,11 @@ public enum ViewMatcher {
 	}
 	
 	public static String getSearchType(String matcher) {
-		Object[] vm = ViewMatcher.values();
+		Object[] vm = ViewMatchers.values();
 
 		for (Object o : vm)
-			if(((ViewMatcher)o).name().equals(matcher))
-				return ((ViewMatcher) o).getValue();
+			if(((ViewMatchers)o).name().equals(matcher))
+				return ((ViewMatchers) o).getValue();
 		return "";
 	}
 }

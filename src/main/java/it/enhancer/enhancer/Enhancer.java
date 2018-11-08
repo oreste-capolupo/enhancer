@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.github.javaparser.*;
@@ -18,6 +20,7 @@ import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 
 import it.enhancer.enhancer.withIdModel.*;
 import it.enhancer.enhancer.withTextModel.*;
@@ -28,30 +31,249 @@ public class Enhancer {
 		FileInputStream in = new FileInputStream(
 				"/home/oreste/eclipse-workspace/Enhancer/enhancer/files/original_espresso_test.java");
 		CompilationUnit cu = JavaParser.parse(in);
-		
+
 		addImportsInCompilationUnit(cu);
-		
+
 		addPrivateField(cu);
-		
-		//creates the getActivityInstanceMethod
+
+		// creates the getActivityInstanceMethod
 		addActivityInstanceMethod(cu);
-		
+
 		// visit and print the methods names
 		cu.accept(new MethodVisitor(), null);
-		System.out.println(cu.toString());
+		// System.out.println(cu.toString());
 
-		//generate enhanced java file
+		// generate enhanced java file
 		PrintWriter w = new PrintWriter("enhanced_espresso_test.java", "UTF-8");
 		w.print(cu.toString());
 		w.close();
-		
+
+		String json = "{\n" + 
+				"  \"expression\": {\n" + 
+				"    \"scope\": {\n" + 
+				"      \"scope\": {\n" + 
+				"        \"name\": {\n" + 
+				"          \"identifier\": \"onView\",\n" + 
+				"          \"type\": \"SimpleName\"\n" + 
+				"        },\n" + 
+				"        \"arguments\": [\n" + 
+				"          {\n" + 
+				"            \"name\": {\n" + 
+				"              \"identifier\": \"withId\",\n" + 
+				"              \"type\": \"SimpleName\"\n" + 
+				"            },\n" + 
+				"            \"arguments\": [\n" + 
+				"              {\n" + 
+				"                \"scope\": {\n" + 
+				"                  \"scope\": {\n" + 
+				"                    \"name\": {\n" + 
+				"                      \"identifier\": \"R\",\n" + 
+				"                      \"type\": \"SimpleName\"\n" + 
+				"                    },\n" + 
+				"                    \"type\": \"NameExpr\"\n" + 
+				"                  },\n" + 
+				"                  \"name\": {\n" + 
+				"                    \"identifier\": \"id\",\n" + 
+				"                    \"type\": \"SimpleName\"\n" + 
+				"                  },\n" + 
+				"                  \"type\": \"FieldAccessExpr\"\n" + 
+				"                },\n" + 
+				"                \"name\": {\n" + 
+				"                  \"identifier\": \"fab_expand_menu_button\",\n" + 
+				"                  \"type\": \"SimpleName\"\n" + 
+				"                },\n" + 
+				"                \"type\": \"FieldAccessExpr\"\n" + 
+				"              }\n" + 
+				"            ],\n" + 
+				"            \"type\": \"MethodCallExpr\"\n" + 
+				"          }\n" + 
+				"        ],\n" + 
+				"        \"type\": \"MethodCallExpr\"\n" + 
+				"      },\n" + 
+				"      \"name\": {\n" + 
+				"        \"identifier\": \"perform\",\n" + 
+				"        \"type\": \"SimpleName\"\n" + 
+				"      },\n" + 
+				"      \"arguments\": [\n" + 
+				"        {\n" + 
+				"          \"name\": {\n" + 
+				"            \"identifier\": \"typeText\",\n" + 
+				"            \"type\": \"SimpleName\"\n" + 
+				"          },\n" + 
+				"          \"arguments\": [\n" + 
+				"            {\n" + 
+				"              \"type\": \"IntegerLiteralExpr\",\n" + 
+				"              \"value\": \"0\"\n" + 
+				"            }\n" + 
+				"          ],\n" + 
+				"          \"type\": \"MethodCallExpr\"\n" + 
+				"        },\n" + 
+				"        {\n" + 
+				"          \"name\": {\n" + 
+				"            \"identifier\": \"click\",\n" + 
+				"            \"type\": \"SimpleName\"\n" + 
+				"          },\n" + 
+				"          \"type\": \"MethodCallExpr\"\n" + 
+				"        }\n" + 
+				"      ],\n" + 
+				"      \"type\": \"MethodCallExpr\"\n" + 
+				"    },\n" + 
+				"    \"name\": {\n" + 
+				"      \"identifier\": \"check\",\n" + 
+				"      \"type\": \"SimpleName\"\n" + 
+				"    },\n" + 
+				"    \"arguments\": [\n" + 
+				"      {\n" + 
+				"        \"name\": {\n" + 
+				"          \"identifier\": \"doesNotExist\",\n" + 
+				"          \"type\": \"SimpleName\"\n" + 
+				"        },\n" + 
+				"        \"type\": \"MethodCallExpr\"\n" + 
+				"      },\n" + 
+				"      {\n" + 
+				"        \"name\": {\n" + 
+				"          \"identifier\": \"doesNotExist\",\n" + 
+				"          \"type\": \"SimpleName\"\n" + 
+				"        },\n" + 
+				"        \"type\": \"MethodCallExpr\"\n" + 
+				"      }\n" + 
+				"    ],\n" + 
+				"    \"type\": \"MethodCallExpr\"\n" + 
+				"  },\n" + 
+				"  \"type\": \"ExpressionStmt\"\n" + 
+				"}";
+		JSONObject j = new JSONObject(json);
+		j = j.getJSONObject("expression");
+		Scope o = new Scope(parseJsonScope(j), j.getJSONObject("name").getString("identifier"), parseJsonArgument(j, null));
+		System.out.println(o.toString());
 		// prints the resulting compilation unit to default system output
 		// System.out.println(cu.toString());
 	}
 
+	public static Scope parseJsonScope(JSONObject j) {
+		try {
+			return new Scope(parseJsonScope(j = j.getJSONObject("scope")),
+					j.getJSONObject("name").getString("identifier"), parseJsonArgument(j, null));
+		} catch (JSONException e) {
+			// TODO: handle exception
+			return null;
+		}
+	}
+
+	public static Argument parseJsonArgument(JSONObject j, JSONArray a) {
+		try {
+			if (a == null)
+				return new Argument(parseJsonArgument(j, a = j.getJSONArray("arguments")),
+						a.getJSONObject(0).getJSONObject("name").getString("identifier"), null);
+			else
+				return new Argument(parseJsonArgument(j, a = ((JSONObject) a.get(0)).getJSONArray("arguments")),
+						a.getJSONObject(0).getJSONObject("name").getString("identifier"), null);
+		} catch (JSONException e) {
+			// TODO: handle exception
+			try {
+				String value = a.getJSONObject(0).getString("value");
+				return new Argument(null, null, value);
+			} catch(JSONException v) {
+				return null;
+			}
+		}
+	}
+
+	static class Scope {
+		protected Scope scope;
+		protected String name;
+		protected Argument argument;
+
+		public Scope(Scope scope, String name, Argument argument) {
+			this.scope = scope;
+			this.name = name;
+			this.argument = argument;
+		}
+
+		public Scope() {
+			// TODO Auto-generated constructor stub
+		}
+
+		public Scope getScope() {
+			return scope;
+		}
+
+		public void setScope(Scope scope) {
+			this.scope = scope;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public Argument getArgument() {
+			return argument;
+		}
+
+		public void setArgument(Argument argument) {
+			this.argument = argument;
+		}
+
+		@Override
+		public String toString() {
+			return "Scope [scope=" + scope + ", name=" + name + ", argument=" + argument + "]";
+		}
+
+	}
+
+	static class Argument {
+		private String name;
+		private String value;
+		private Argument argument;
+
+		public Argument(Argument argument, String name, String value) {
+			this.name = name;
+			this.value = value;
+			this.argument = argument;
+		}
+
+		public Argument() {
+			// TODO Auto-generated constructor stub
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public Argument getArgument() {
+			return argument;
+		}
+
+		public void setArgument(Argument argument) {
+			this.argument = argument;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return "Argument [name=" + name + ", value=" + value + ", argument=" + argument + "]";
+		}
+
+	}
+
 	private static void addPrivateField(CompilationUnit cu) {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
-		
+
 		BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
 		ci.getMembers().add(0, field);
 	}
@@ -70,27 +292,23 @@ public class Enhancer {
 	private static void addActivityInstanceMethod(CompilationUnit cu) {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 		MethodDeclaration md = new MethodDeclaration();
-		
-		String body = "{"
-				+ "getInstrumentation().runOnMainSync(new Runnable() {\n" + 
-				"            public void run() {\n" + 
-				"                Collection resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(RESUMED);\n" + 
-				"                if (resumedActivities.iterator().hasNext()){\n" + 
-				"                    currentActivity = (Activity) resumedActivities.iterator().next();\n" + 
-				"                }\n" + 
-				"            }\n" + 
-				"        });\n" + 
-				"\n" + 
-				"        return currentActivity;"
+
+		String body = "{" + "getInstrumentation().runOnMainSync(new Runnable() {\n"
+				+ "            public void run() {\n"
+				+ "                Collection resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(RESUMED);\n"
+				+ "                if (resumedActivities.iterator().hasNext()){\n"
+				+ "                    currentActivity = (Activity) resumedActivities.iterator().next();\n"
+				+ "                }\n" + "            }\n" + "        });\n" + "\n" + "        return currentActivity;"
 				+ "}";
-		
+
 		md.setName("getActivityInstance");
 		md.setPublic(true);
 		md.setType("Activity");
 		BlockStmt b = JavaParser.parseBlock(body);
 		md.setBody(b);
-		
-		//adds the method at the bottom of the class. The private field "currentActivity" is included in the members
+
+		// adds the method at the bottom of the class. The private field
+		// "currentActivity" is included in the members
 		ci.getMembers().add(ci.getMembers().size(), md);
 	}
 
@@ -140,9 +358,9 @@ public class Enhancer {
 			boolean firstTest = true;
 
 			for (int i = 0; i < logs.size(); i++) {
-				//remove each statement even if it's not a test to maintain order
+				// remove each statement even if it's not a test to maintain order
 				b.remove(tests.get(i));
-				
+
 				LogCat logValues = null;
 				// if log != null then the statement is a test and we have to enhance the class
 				if ((logValues = logs.get(i)) != null) {
@@ -154,7 +372,7 @@ public class Enhancer {
 						b.addStatement(date);
 						b.addStatement(activity);
 					}
-						
+
 					Statement log = JavaParser.parseStatement("Log.d(\"touchtest\", now.getTime() + \", \" + \""
 							+ logValues.getSearchType() + "\" +" + " \", \" + \"" + logValues.getSearchKw()
 							+ "\" + \", \" + \"" + logValues.getInteractionType() + "\");");
@@ -174,7 +392,6 @@ public class Enhancer {
 		LogCat logValues = null;
 
 		if (s.toString().contains("onView")) {
-			Statement ps = JavaParser.parseStatement(s.toString());
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
 
@@ -195,7 +412,7 @@ public class Enhancer {
 
 			// System.out.println(m.getExpression().getScope().getArguments().get(0).getArguments().get(0).getName().getIdentifier());
 
-			JSONObject jsonObject = new JSONObject(printer.output(ps));
+			JSONObject jsonObject = new JSONObject(json);
 			System.out.println(jsonObject.toString());
 			// System.out.println(s.toString());
 		}
@@ -208,7 +425,7 @@ public class Enhancer {
 		Gson gson = new Gson();
 		LogCat log = null;
 
-		String searchType = ViewMatcher.getSearchType(matcher);
+		String searchType = ViewMatchers.getSearchType(matcher);
 		String searchKw = "";
 		String interactionType = "";
 
