@@ -48,227 +48,99 @@ public class Enhancer {
 		w.print(cu.toString());
 		w.close();
 
-		String json = "{\n" + 
-				"  \"expression\": {\n" + 
-				"    \"scope\": {\n" + 
-				"      \"scope\": {\n" + 
-				"        \"name\": {\n" + 
-				"          \"identifier\": \"onView\",\n" + 
-				"          \"type\": \"SimpleName\"\n" + 
-				"        },\n" + 
-				"        \"arguments\": [\n" + 
-				"          {\n" + 
-				"            \"name\": {\n" + 
-				"              \"identifier\": \"withId\",\n" + 
-				"              \"type\": \"SimpleName\"\n" + 
-				"            },\n" + 
-				"            \"arguments\": [\n" + 
-				"              {\n" + 
-				"                \"scope\": {\n" + 
-				"                  \"scope\": {\n" + 
-				"                    \"name\": {\n" + 
-				"                      \"identifier\": \"R\",\n" + 
-				"                      \"type\": \"SimpleName\"\n" + 
-				"                    },\n" + 
-				"                    \"type\": \"NameExpr\"\n" + 
-				"                  },\n" + 
-				"                  \"name\": {\n" + 
-				"                    \"identifier\": \"id\",\n" + 
-				"                    \"type\": \"SimpleName\"\n" + 
-				"                  },\n" + 
-				"                  \"type\": \"FieldAccessExpr\"\n" + 
-				"                },\n" + 
-				"                \"name\": {\n" + 
-				"                  \"identifier\": \"fab_expand_menu_button\",\n" + 
-				"                  \"type\": \"SimpleName\"\n" + 
-				"                },\n" + 
-				"                \"type\": \"FieldAccessExpr\"\n" + 
-				"              }\n" + 
-				"            ],\n" + 
-				"            \"type\": \"MethodCallExpr\"\n" + 
-				"          }\n" + 
-				"        ],\n" + 
-				"        \"type\": \"MethodCallExpr\"\n" + 
-				"      },\n" + 
-				"      \"name\": {\n" + 
-				"        \"identifier\": \"perform\",\n" + 
-				"        \"type\": \"SimpleName\"\n" + 
-				"      },\n" + 
-				"      \"arguments\": [\n" + 
-				"        {\n" + 
-				"          \"name\": {\n" + 
-				"            \"identifier\": \"typeText\",\n" + 
-				"            \"type\": \"SimpleName\"\n" + 
-				"          },\n" + 
-				"          \"arguments\": [\n" + 
-				"            {\n" + 
-				"              \"type\": \"IntegerLiteralExpr\",\n" + 
-				"              \"value\": \"0\"\n" + 
-				"            }\n" + 
-				"          ],\n" + 
-				"          \"type\": \"MethodCallExpr\"\n" + 
-				"        },\n" + 
-				"        {\n" + 
-				"          \"name\": {\n" + 
-				"            \"identifier\": \"click\",\n" + 
-				"            \"type\": \"SimpleName\"\n" + 
-				"          },\n" + 
-				"          \"type\": \"MethodCallExpr\"\n" + 
-				"        }\n" + 
-				"      ],\n" + 
-				"      \"type\": \"MethodCallExpr\"\n" + 
-				"    },\n" + 
-				"    \"name\": {\n" + 
-				"      \"identifier\": \"check\",\n" + 
-				"      \"type\": \"SimpleName\"\n" + 
-				"    },\n" + 
-				"    \"arguments\": [\n" + 
-				"      {\n" + 
-				"        \"name\": {\n" + 
-				"          \"identifier\": \"doesNotExist\",\n" + 
-				"          \"type\": \"SimpleName\"\n" + 
-				"        },\n" + 
-				"        \"type\": \"MethodCallExpr\"\n" + 
-				"      },\n" + 
-				"      {\n" + 
-				"        \"name\": {\n" + 
-				"          \"identifier\": \"doesNotExist\",\n" + 
-				"          \"type\": \"SimpleName\"\n" + 
-				"        },\n" + 
-				"        \"type\": \"MethodCallExpr\"\n" + 
-				"      }\n" + 
-				"    ],\n" + 
-				"    \"type\": \"MethodCallExpr\"\n" + 
-				"  },\n" + 
-				"  \"type\": \"ExpressionStmt\"\n" + 
-				"}";
+		String json = "{\n" + "  \"expression\": {\n" + "    \"scope\": {\n" + "      \"scope\": {\n"
+				+ "        \"name\": {\n" + "          \"identifier\": \"onView\",\n"
+				+ "          \"type\": \"SimpleName\"\n" + "        },\n" + "        \"arguments\": [\n"
+				+ "          {\n" + "            \"name\": {\n" + "              \"identifier\": \"withId\",\n"
+				+ "              \"type\": \"SimpleName\"\n" + "            },\n" + "            \"arguments\": [\n"
+				+ "              {\n" + "                \"scope\": {\n" + "                  \"scope\": {\n"
+				+ "                    \"name\": {\n" + "                      \"identifier\": \"R\",\n"
+				+ "                      \"type\": \"SimpleName\"\n" + "                    },\n"
+				+ "                    \"type\": \"NameExpr\"\n" + "                  },\n"
+				+ "                  \"name\": {\n" + "                    \"identifier\": \"id\",\n"
+				+ "                    \"type\": \"SimpleName\"\n" + "                  },\n"
+				+ "                  \"type\": \"FieldAccessExpr\"\n" + "                },\n"
+				+ "                \"name\": {\n" + "                  \"identifier\": \"fab_expand_menu_button\",\n"
+				+ "                  \"type\": \"SimpleName\"\n" + "                },\n"
+				+ "                \"type\": \"FieldAccessExpr\"\n" + "              }\n" + "            ],\n"
+				+ "            \"type\": \"MethodCallExpr\"\n" + "          }\n" + "        ],\n"
+				+ "        \"type\": \"MethodCallExpr\"\n" + "      },\n" + "      \"name\": {\n"
+				+ "        \"identifier\": \"perform\",\n" + "        \"type\": \"SimpleName\"\n" + "      },\n"
+				+ "      \"arguments\": [\n" + "        {\n" + "          \"name\": {\n"
+				+ "            \"identifier\": \"typeText\",\n" + "            \"type\": \"SimpleName\"\n"
+				+ "          },\n" + "          \"arguments\": [\n" + "            {\n"
+				+ "              \"type\": \"IntegerLiteralExpr\",\n" + "              \"value\": \"0\"\n"
+				+ "            }\n" + "          ],\n" + "          \"type\": \"MethodCallExpr\"\n" + "        },\n"
+				+ "        {\n" + "          \"name\": {\n" + "            \"identifier\": \"click\",\n"
+				+ "            \"type\": \"SimpleName\"\n" + "          },\n"
+				+ "          \"type\": \"MethodCallExpr\"\n" + "        }\n" + "      ],\n"
+				+ "      \"type\": \"MethodCallExpr\"\n" + "    },\n" + "    \"name\": {\n"
+				+ "      \"identifier\": \"check\",\n" + "      \"type\": \"SimpleName\"\n" + "    },\n"
+				+ "    \"arguments\": [\n" + "      {\n" + "        \"name\": {\n"
+				+ "          \"identifier\": \"doesNotExist\",\n" + "          \"type\": \"SimpleName\"\n"
+				+ "        },\n" + "        \"type\": \"MethodCallExpr\"\n" + "      },\n" + "      {\n"
+				+ "        \"name\": {\n" + "          \"identifier\": \"doesNotExist\",\n"
+				+ "          \"type\": \"SimpleName\"\n" + "        },\n" + "        \"type\": \"MethodCallExpr\"\n"
+				+ "      }\n" + "    ],\n" + "    \"type\": \"MethodCallExpr\"\n" + "  },\n"
+				+ "  \"type\": \"ExpressionStmt\"\n" + "}";
+		
+		List<String> op = new ArrayList<String>();
 		JSONObject j = new JSONObject(json);
 		j = j.getJSONObject("expression");
-		Scope o = new Scope(parseJsonScope(j), j.getJSONObject("name").getString("identifier"), parseJsonArgument(j, null));
-		System.out.println(o.toString());
+
+		parseJsonScope(op, j);
+		op.add(j.getJSONObject("name").getString("identifier"));
+		parseJsonArgument(op, j, null);
+		
+		System.out.println(op.toString());
+		
+		
+		// Scope o = new Scope(parseJsonScope(j),
+		// , parseJsonArgument(j, null));
+		// System.out.println(o.toString());
 		// prints the resulting compilation unit to default system output
 		// System.out.println(cu.toString());
 	}
 
-	public static Scope parseJsonScope(JSONObject j) {
+	public static void parseJsonScope(List<String> op, JSONObject j) {
 		try {
-			return new Scope(parseJsonScope(j = j.getJSONObject("scope")),
-					j.getJSONObject("name").getString("identifier"), parseJsonArgument(j, null));
+			parseJsonScope(op, j = j.getJSONObject("scope"));
+			op.add(j.getJSONObject("name").getString("identifier"));
+			parseJsonArgument(op, j, null);
 		} catch (JSONException e) {
 			// TODO: handle exception
-			return null;
+
 		}
 	}
 
-	public static Argument parseJsonArgument(JSONObject j, JSONArray a) {
+	public static void parseJsonArgument(List<String> op, JSONObject j, JSONArray a) {
 		try {
 			if (a == null)
-				return new Argument(parseJsonArgument(j, a = j.getJSONArray("arguments")),
-						a.getJSONObject(0).getJSONObject("name").getString("identifier"), null);
+				parseJsonArgument(op, j, a = j.getJSONArray("arguments"));	
 			else
-				return new Argument(parseJsonArgument(j, a = ((JSONObject) a.get(0)).getJSONArray("arguments")),
-						a.getJSONObject(0).getJSONObject("name").getString("identifier"), null);
+				parseJsonArgument(op, j, a = ((JSONObject) a.get(0)).getJSONArray("arguments"));
+			methodOverloading(op, a);
 		} catch (JSONException e) {
 			// TODO: handle exception
 			try {
-				String value = a.getJSONObject(0).getString("value");
-				return new Argument(null, null, value);
-			} catch(JSONException v) {
-				return null;
+				if(e.getMessage().equals("JSONObject[\"arguments\"] not found."))
+					op.add(a.getJSONObject(0).getString("value"));
+			} catch (JSONException v) {
 			}
 		}
 	}
 
-	static class Scope {
-		protected Scope scope;
-		protected String name;
-		protected Argument argument;
-
-		public Scope(Scope scope, String name, Argument argument) {
-			this.scope = scope;
-			this.name = name;
-			this.argument = argument;
+	private static void methodOverloading(List<String> op, JSONArray a) {
+		try {
+			int i = 0;
+			while(true) {
+				op.add(a.getJSONObject(i).getJSONObject("name").getString("identifier"));
+				i++;
+			}
+				
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
-
-		public Scope() {
-			// TODO Auto-generated constructor stub
-		}
-
-		public Scope getScope() {
-			return scope;
-		}
-
-		public void setScope(Scope scope) {
-			this.scope = scope;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public Argument getArgument() {
-			return argument;
-		}
-
-		public void setArgument(Argument argument) {
-			this.argument = argument;
-		}
-
-		@Override
-		public String toString() {
-			return "Scope [scope=" + scope + ", name=" + name + ", argument=" + argument + "]";
-		}
-
-	}
-
-	static class Argument {
-		private String name;
-		private String value;
-		private Argument argument;
-
-		public Argument(Argument argument, String name, String value) {
-			this.name = name;
-			this.value = value;
-			this.argument = argument;
-		}
-
-		public Argument() {
-			// TODO Auto-generated constructor stub
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public Argument getArgument() {
-			return argument;
-		}
-
-		public void setArgument(Argument argument) {
-			this.argument = argument;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public void setValue(String value) {
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return "Argument [name=" + name + ", value=" + value + ", argument=" + argument + "]";
-		}
-
 	}
 
 	private static void addPrivateField(CompilationUnit cu) {
