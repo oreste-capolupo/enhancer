@@ -99,6 +99,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     public void testTest() {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
+        onView(allOf(withText("about"), withContentDescription("testo"), withText("show"))).perform(click());
         Date now = new Date();
         Activity activity = getActivityInstance();
         Log.d("touchtest", now.getTime() + ", " + "id" + ", " + "fab_expand_menu_button" + ", " + "click");
@@ -110,7 +111,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         onView(withId(R.id.fab_expand_menu_button)).perform(typeText(0), click()).check(doesNotExist(), doesNotExist());
-        onView(allOf(withText("About"), isDisplayed())).perform(click());
         now = new Date();
         activity = getActivityInstance();
         Log.d("touchtest", now.getTime() + ", " + "text" + ", " + "Text note" + ", " + "click");

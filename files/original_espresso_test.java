@@ -102,12 +102,11 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
 
+onView(allOf(withText("about"), withContentDescription("testo"),withText("show"))).perform(click());
+
         onView(withId(R.id.fab_expand_menu_button)).perform(click());
 
         onView(withId(R.id.fab_expand_menu_button)).perform(typeText(0), click()).check(doesNotExist(),doesNotExist());
-
-        onView(allOf(withText("About"), isDisplayed())).perform(click());
-
 
         onView(withText("Text note")).perform(click());
 

@@ -47,99 +47,48 @@ public class Enhancer {
 		PrintWriter w = new PrintWriter("enhanced_espresso_test.java", "UTF-8");
 		w.print(cu.toString());
 		w.close();
-
-		String json = "{\n" + "  \"expression\": {\n" + "    \"scope\": {\n" + "      \"scope\": {\n"
-				+ "        \"name\": {\n" + "          \"identifier\": \"onView\",\n"
-				+ "          \"type\": \"SimpleName\"\n" + "        },\n" + "        \"arguments\": [\n"
-				+ "          {\n" + "            \"name\": {\n" + "              \"identifier\": \"withId\",\n"
-				+ "              \"type\": \"SimpleName\"\n" + "            },\n" + "            \"arguments\": [\n"
-				+ "              {\n" + "                \"scope\": {\n" + "                  \"scope\": {\n"
-				+ "                    \"name\": {\n" + "                      \"identifier\": \"R\",\n"
-				+ "                      \"type\": \"SimpleName\"\n" + "                    },\n"
-				+ "                    \"type\": \"NameExpr\"\n" + "                  },\n"
-				+ "                  \"name\": {\n" + "                    \"identifier\": \"id\",\n"
-				+ "                    \"type\": \"SimpleName\"\n" + "                  },\n"
-				+ "                  \"type\": \"FieldAccessExpr\"\n" + "                },\n"
-				+ "                \"name\": {\n" + "                  \"identifier\": \"fab_expand_menu_button\",\n"
-				+ "                  \"type\": \"SimpleName\"\n" + "                },\n"
-				+ "                \"type\": \"FieldAccessExpr\"\n" + "              }\n" + "            ],\n"
-				+ "            \"type\": \"MethodCallExpr\"\n" + "          }\n" + "        ],\n"
-				+ "        \"type\": \"MethodCallExpr\"\n" + "      },\n" + "      \"name\": {\n"
-				+ "        \"identifier\": \"perform\",\n" + "        \"type\": \"SimpleName\"\n" + "      },\n"
-				+ "      \"arguments\": [\n" + "        {\n" + "          \"name\": {\n"
-				+ "            \"identifier\": \"typeText\",\n" + "            \"type\": \"SimpleName\"\n"
-				+ "          },\n" + "          \"arguments\": [\n" + "            {\n"
-				+ "              \"type\": \"IntegerLiteralExpr\",\n" + "              \"value\": \"0\"\n"
-				+ "            }\n" + "          ],\n" + "          \"type\": \"MethodCallExpr\"\n" + "        },\n"
-				+ "        {\n" + "          \"name\": {\n" + "            \"identifier\": \"click\",\n"
-				+ "            \"type\": \"SimpleName\"\n" + "          },\n"
-				+ "          \"type\": \"MethodCallExpr\"\n" + "        }\n" + "      ],\n"
-				+ "      \"type\": \"MethodCallExpr\"\n" + "    },\n" + "    \"name\": {\n"
-				+ "      \"identifier\": \"check\",\n" + "      \"type\": \"SimpleName\"\n" + "    },\n"
-				+ "    \"arguments\": [\n" + "      {\n" + "        \"name\": {\n"
-				+ "          \"identifier\": \"doesNotExist\",\n" + "          \"type\": \"SimpleName\"\n"
-				+ "        },\n" + "        \"type\": \"MethodCallExpr\"\n" + "      },\n" + "      {\n"
-				+ "        \"name\": {\n" + "          \"identifier\": \"doesNotExist\",\n"
-				+ "          \"type\": \"SimpleName\"\n" + "        },\n" + "        \"type\": \"MethodCallExpr\"\n"
-				+ "      }\n" + "    ],\n" + "    \"type\": \"MethodCallExpr\"\n" + "  },\n"
-				+ "  \"type\": \"ExpressionStmt\"\n" + "}";
-		
-		List<String> op = new ArrayList<String>();
-		JSONObject j = new JSONObject(json);
-		j = j.getJSONObject("expression");
-
-		parseJsonScope(op, j);
-		op.add(j.getJSONObject("name").getString("identifier"));
-		parseJsonArgument(op, j, null);
-		
-		System.out.println(op.toString());
-		
-		
-		// Scope o = new Scope(parseJsonScope(j),
-		// , parseJsonArgument(j, null));
-		// System.out.println(o.toString());
-		// prints the resulting compilation unit to default system output
-		// System.out.println(cu.toString());
 	}
 
 	public static void parseJsonScope(List<String> op, JSONObject j) {
 		try {
 			parseJsonScope(op, j = j.getJSONObject("scope"));
 			op.add(j.getJSONObject("name").getString("identifier"));
-			parseJsonArgument(op, j, null);
+			parseJsonArgument(op, j, null, 0);
 		} catch (JSONException e) {
 			// TODO: handle exception
 
 		}
 	}
 
-	public static void parseJsonArgument(List<String> op, JSONObject j, JSONArray a) {
+	public static void parseJsonArgument(List<String> op, JSONObject j, JSONArray a, int i) {
 		try {
 			if (a == null)
-				parseJsonArgument(op, j, a = j.getJSONArray("arguments"));	
-			else
-				parseJsonArgument(op, j, a = ((JSONObject) a.get(0)).getJSONArray("arguments"));
-			methodOverloading(op, a);
+				parseJsonArgument(op, j, a = j.getJSONArray("arguments"), 0);	
+			else 
+				parseJsonArgument(op, j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
+			methodOverloading(op, a, i);
 		} catch (JSONException e) {
 			// TODO: handle exception
 			try {
-				if(e.getMessage().equals("JSONObject[\"arguments\"] not found."))
-					op.add(a.getJSONObject(0).getString("value"));
+//				if(e.getMessage().equals("JSONObject[\"arguments\"] not found."))
 			} catch (JSONException v) {
 			}
 		}
 	}
-
-	private static void methodOverloading(List<String> op, JSONArray a) {
+	
+	// TODO: try making it recursive on argument and if it fails add the value and then the name
+	private static void methodOverloading(List<String> op, JSONArray a, int i) {
 		try {
-			int i = 0;
-			while(true) {
-				op.add(a.getJSONObject(i).getJSONObject("name").getString("identifier"));
-				i++;
-			}
-				
+			op.add(a.getJSONObject(i).getJSONObject("name").getString("identifier"));
+			parseJsonArgument(op, null, a, ++i);
+			methodOverloading(op, a, i);
 		} catch (Exception e) {
 			// TODO: handle exception
+			try {
+				op.add(a.getJSONObject(0).getString("value"));
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
 		}
 	}
 
@@ -276,16 +225,24 @@ public class Enhancer {
 
 			logValues = getLog(json, matcher);
 
-			if (logValues != null) {
-				System.out.println(logValues.getSearchType());
-				System.out.println(logValues.getSearchKw());
-				System.out.println(logValues.getInteractionType());
-			}
+//			if (logValues != null) {
+//				System.out.println(logValues.getSearchType());
+//				System.out.println(logValues.getSearchKw());
+//				System.out.println(logValues.getInteractionType());
+//			}
 
 			// System.out.println(m.getExpression().getScope().getArguments().get(0).getArguments().get(0).getName().getIdentifier());
+			
+			List<String> op = new ArrayList<String>();
+			JSONObject j = new JSONObject(json);
+//			System.out.println(j.toString());
+			j = j.getJSONObject("expression");
 
-			JSONObject jsonObject = new JSONObject(json);
-			System.out.println(jsonObject.toString());
+			parseJsonScope(op, j);
+			op.add(j.getJSONObject("name").getString("identifier"));
+			parseJsonArgument(op, j, null, 0);
+			
+			System.out.println(op.toString());
 			// System.out.println(s.toString());
 		}
 		return logValues;
