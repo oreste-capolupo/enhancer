@@ -19,11 +19,6 @@ import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-
-import it.enhancer.enhancer.withIdModel.*;
-import it.enhancer.enhancer.withTextModel.*;
 
 public class Enhancer {
 
@@ -47,49 +42,6 @@ public class Enhancer {
 		PrintWriter w = new PrintWriter("enhanced_espresso_test.java", "UTF-8");
 		w.print(cu.toString());
 		w.close();
-	}
-
-	public static void parseJsonScope(List<String> op, JSONObject j) {
-		try {
-			parseJsonScope(op, j = j.getJSONObject("scope"));
-			op.add(j.getJSONObject("name").getString("identifier"));
-			parseJsonArgument(op, j, null, 0);
-		} catch (JSONException e) {
-			// TODO: handle exception
-
-		}
-	}
-
-	public static void parseJsonArgument(List<String> op, JSONObject j, JSONArray a, int i) {
-		try {
-			if (a == null)
-				parseJsonArgument(op, j, a = j.getJSONArray("arguments"), 0);	
-			else 
-				parseJsonArgument(op, j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
-			methodOverloading(op, a, i);
-		} catch (JSONException e) {
-			// TODO: handle exception
-			try {
-//				if(e.getMessage().equals("JSONObject[\"arguments\"] not found."))
-			} catch (JSONException v) {
-			}
-		}
-	}
-	
-	// TODO: try making it recursive on argument and if it fails add the value and then the name
-	private static void methodOverloading(List<String> op, JSONArray a, int i) {
-		try {
-			op.add(a.getJSONObject(i).getJSONObject("name").getString("identifier"));
-			parseJsonArgument(op, null, a, ++i);
-			methodOverloading(op, a, i);
-		} catch (Exception e) {
-			// TODO: handle exception
-			try {
-				op.add(a.getJSONObject(0).getString("value"));
-			} catch (Exception e2) {
-				// TODO: handle exception
-			}
-		}
 	}
 
 	private static void addPrivateField(CompilationUnit cu) {
@@ -147,13 +99,9 @@ public class Enhancer {
 				NodeList<Statement> tests = new NodeList<Statement>();
 				List<LogCat> logs = new ArrayList<LogCat>();
 
-				// the first part of this model is the same for these viewMatchers( withId,
-				// withText, withContentDescription )
-				WithIdModel model = new WithIdModel();
-
 				// scan each statement
 				for (Statement s : nodes) {
-					LogCat log = parseStatement(model, s);
+					LogCat log = parseStatement(s);
 
 					// add each statement, if is not a test then log == null
 					logs.add(log);
@@ -208,31 +156,53 @@ public class Enhancer {
 			}
 		}
 	}
+	
+	public static void parseJsonScope(List<String> op, JSONObject j) {
+		try {
+			parseJsonScope(op, j = j.getJSONObject("scope"));
+			op.add(j.getJSONObject("name").getString("identifier"));
+			parseJsonArgument(op, j, null, 0);
+		} catch (JSONException e) {
+			// TODO: handle exception
 
-	public static LogCat parseStatement(WithIdModel m, Statement s) {
+		}
+	}
+
+	public static void parseJsonArgument(List<String> op, JSONObject j, JSONArray a, int i) {
+		try {
+			if (a == null)
+				parseJsonArgument(op, j, a = j.getJSONArray("arguments"), 0);	
+			else
+				parseJsonArgument(op, j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
+			methodOverloading(op, a, i);
+		} catch (JSONException e) {
+			// TODO: handle exception
+		}
+	}
+	
+	private static void methodOverloading(List<String> op, JSONArray a, int i) {
+		try {
+			op.add(a.getJSONObject(i).getJSONObject("name").getString("identifier"));
+			parseJsonArgument(op, null, a, ++i);
+			methodOverloading(op, a, i);
+		} catch (JSONException e) {
+			// TODO: handle exception
+			try {
+				op.add(a.getJSONObject(0).getString("value"));
+			} catch (JSONException e2) {
+				// TODO: handle exception
+			}
+		}
+	}
+
+
+	public static LogCat parseStatement(Statement s) {
 		LogCat logValues = null;
 
 		if (s.toString().contains("onView")) {
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
 
-			Gson gson = new Gson();
-			m = gson.fromJson(json, WithIdModel.class);
-
-			// get the viewMatcher of this statement
-			it.enhancer.enhancer.withIdModel.Argument argument = m.getExpression().getScope().getArguments().get(0);
-			String matcher = argument.getName().getIdentifier();
-
-			logValues = getLog(json, matcher);
-
-//			if (logValues != null) {
-//				System.out.println(logValues.getSearchType());
-//				System.out.println(logValues.getSearchKw());
-//				System.out.println(logValues.getInteractionType());
-//			}
-
-			// System.out.println(m.getExpression().getScope().getArguments().get(0).getArguments().get(0).getName().getIdentifier());
-			
 			List<String> op = new ArrayList<String>();
 			JSONObject j = new JSONObject(json);
 //			System.out.println(j.toString());
@@ -243,7 +213,8 @@ public class Enhancer {
 			parseJsonArgument(op, j, null, 0);
 			
 			System.out.println(op.toString());
-			// System.out.println(s.toString());
+			
+//			logValues = getLog(json, matcher);
 		}
 		return logValues;
 	}
@@ -251,36 +222,13 @@ public class Enhancer {
 	// withIdModel can be used with identifiers
 	// withTextModel can be used with values
 	public static LogCat getLog(String json, String matcher) {
-		Gson gson = new Gson();
 		LogCat log = null;
 
 		String searchType = ViewMatchers.getSearchType(matcher);
 		String searchKw = "";
 		String interactionType = "";
 
-		switch (matcher) {
-		case "withId":
-			// using withId model
-			WithIdModel im = gson.fromJson(json, WithIdModel.class);
-			it.enhancer.enhancer.withIdModel.Argument ia = im.getExpression().getScope().getArguments().get(0);
-			searchKw = ia.getArguments().get(0).getName().getIdentifier();
-			// perform and click
-			// System.out.println(im.getExpression().getName().getIdentifier());
-			interactionType = im.getExpression().getArguments().get(0).getName().getIdentifier();
-			break;
-
-		case "withText":
-		case "withContentDescription":
-			// using withText model
-			WithTextModel tm = gson.fromJson(json, WithTextModel.class);
-			it.enhancer.enhancer.withTextModel.Argument ta = tm.getExpression().getScope().getArguments().get(0);
-			searchKw = ta.getArguments().get(0).getValue();
-
-			// perform and click
-			// System.out.println(tm.getExpression().getName().getIdentifier());
-			interactionType = tm.getExpression().getArguments().get(0).getName().getIdentifier();
-			break;
-		}
+		
 
 		if (!searchType.isEmpty() && !searchKw.isEmpty() && !interactionType.isEmpty()) {
 			log = new LogCat(searchType, searchKw, interactionType);
