@@ -22,6 +22,8 @@ import com.github.javaparser.symbolsolver.javaparser.Navigator;
 
 public class Enhancer {
 
+	public static List<Operation> operations;
+	
 	public static void main(String[] args) throws IOException {
 		FileInputStream in = new FileInputStream(
 				"/home/oreste/eclipse-workspace/Enhancer/enhancer/files/original_espresso_test.java");
@@ -93,7 +95,8 @@ public class Enhancer {
 			 * for all methods in this CompilationUnit, including inner class methods
 			 */
 			super.visit(n, arg);
-			if (n.toString().contains("onView")) {
+			String body = n.toString();
+			if (body.contains("onView") || body.contains("onData")) {
 
 				NodeList<Statement> nodes = n.getStatements();
 				NodeList<Statement> tests = new NodeList<Statement>();
@@ -156,79 +159,91 @@ public class Enhancer {
 			}
 		}
 	}
-	
-	public static void parseJsonScope(List<String> op, JSONObject j) {
+
+	public static void parseJsonScope(JSONObject j) {
 		try {
-			parseJsonScope(op, j = j.getJSONObject("scope"));
-			op.add(j.getJSONObject("name").getString("identifier"));
-			parseJsonArgument(op, j, null, 0);
+			parseJsonScope(j = j.getJSONObject("scope"));
+			//gets onView or onData and all embedded performs or checks but the last one
+//			System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
+			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
 			// TODO: handle exception
 
 		}
 	}
 
-	public static void parseJsonArgument(List<String> op, JSONObject j, JSONArray a, int i) {
+	public static void parseJsonArgument(JSONObject j, JSONArray a, int i) {
 		try {
 			if (a == null)
-				parseJsonArgument(op, j, a = j.getJSONArray("arguments"), 0);	
+				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
 			else
-				parseJsonArgument(op, j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
-			methodOverloading(op, a, i);
+				parseJsonArgument(j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
+			methodOverloading(a, i);
 		} catch (JSONException e) {
 			// TODO: handle exception
 		}
 	}
-	
-	private static void methodOverloading(List<String> op, JSONArray a, int i) {
+
+	private static void methodOverloading(JSONArray a, int i) {
 		try {
-			op.add(a.getJSONObject(i).getJSONObject("name").getString("identifier"));
-			parseJsonArgument(op, null, a, ++i);
-			methodOverloading(op, a, i);
+			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
+			
+			if(a.getJSONObject(i).getString("type").equals("FieldAccessExpr"))
+				operations.add(new Operation("", name));
+			else if(operations.size() == 0 || operations.get(operations.size()-1).getName() != "")
+				operations.add(new Operation(name, ""));
+			else
+				operations.get(operations.size()-1).setName(name);
+			
+			parseJsonArgument(null, a, ++i);
+			methodOverloading(a, i);
 		} catch (JSONException e) {
 			// TODO: handle exception
 			try {
-				op.add(a.getJSONObject(0).getString("value"));
+				operations.add(new Operation("", a.getJSONObject(0).getString("value")));
 			} catch (JSONException e2) {
 				// TODO: handle exception
 			}
 		}
 	}
 
-
 	public static LogCat parseStatement(Statement s) {
 		LogCat logValues = null;
 
-		if (s.toString().contains("onView")) {
+		if (s.toString().contains("onView") || s.toString().contains("onData")) {
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
 
-			List<String> op = new ArrayList<String>();
-			JSONObject j = new JSONObject(json);
-//			System.out.println(j.toString());
-			j = j.getJSONObject("expression");
+			operations = new ArrayList<Operation>();
+			
+			try {
+				JSONObject j = new JSONObject(json);
+//				System.out.println(j.toString());
+				j = j.getJSONObject("expression");
 
-			parseJsonScope(op, j);
-			op.add(j.getJSONObject("name").getString("identifier"));
-			parseJsonArgument(op, j, null, 0);
-			
-			System.out.println(op.toString());
-			
-//			logValues = getLog(json, matcher);
+				parseJsonScope(j);
+				//gets the last check or perform
+//				System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
+				parseJsonArgument(j, null, 0);
+				
+				System.out.println(operations.toString());
+
+				logValues = getLog(operations);
+			} catch (JSONException e) {
+				//CAN'T PARSE STATEMENT
+			}
 		}
 		return logValues;
 	}
 
 	// withIdModel can be used with identifiers
 	// withTextModel can be used with values
-	public static LogCat getLog(String json, String matcher) {
+	public static LogCat getLog(List<Operation> op) {
 		LogCat log = null;
 
-		String searchType = ViewMatchers.getSearchType(matcher);
+		String searchType = ViewMatchers.getSearchType("");
 		String searchKw = "";
 		String interactionType = "";
-
-		
 
 		if (!searchType.isEmpty() && !searchKw.isEmpty() && !interactionType.isEmpty()) {
 			log = new LogCat(searchType, searchKw, interactionType);

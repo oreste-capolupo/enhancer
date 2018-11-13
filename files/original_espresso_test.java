@@ -102,7 +102,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
 
-onView(allOf(withText("about"), withContentDescription("testo"),withText("show"))).perform(click());
+        onView(allOf(withText("about"), withContentDescription("testo"),withText("show"))).perform(click());
 
         onView(withId(R.id.fab_expand_menu_button)).perform(click());
 
@@ -110,15 +110,11 @@ onView(allOf(withText("about"), withContentDescription("testo"),withText("show")
 
         onView(withText("Text note")).perform(click());
 
-
         onView(withId(R.id.detail_title)).perform(click());
 
-
         onView(withContentDescription("drawer open")).perform(click());
 
-
         onView(withContentDescription("drawer open")).perform(click());
-
 
         onView(withId(R.id.settings_view)).perform(click());
 
