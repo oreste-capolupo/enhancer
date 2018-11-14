@@ -99,14 +99,56 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     public void testTest() {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
-        onView(allOf(withText("about"), withContentDescription("testo"), withText("show"))).perform(click());
-        onView(withId(R.id.fab_expand_menu_button)).perform(click());
-        onView(withId(R.id.fab_expand_menu_button)).perform(typeText(0), click()).check(doesNotExist(), doesNotExist());
-        onView(withText("Text note")).perform(click());
-        onView(withId(R.id.detail_title)).perform(click());
+        Date now = new Date();
+        Activity activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longClick");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "typeText", "TextToBeReplaced");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", "Replacement");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
-        onView(withContentDescription("drawer open")).perform(click());
-        onView(withId(R.id.settings_view)).perform(click());
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "settings_view", "isDisplayed");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
     }
 
     // for clicking exact coordinates (identify a parent view, then perform clickXY

@@ -3,13 +3,14 @@ package it.enhancer.enhancer;
 public class LogCat {
 	private String searchType;
 	private String searchKw;
-	public String interactionType;
+	private String interactionType;
+	private String interactionParams;
 	
-	public LogCat(String searchType, String searchKw, String interactionType) {
-		super();
+	public LogCat(String searchType, String searchKw, String interactionType, String interactionParams) {
 		this.searchType = searchType;
 		this.searchKw = searchKw;
 		this.interactionType = interactionType;
+		this.interactionParams = interactionParams;
 	}
 
 	public String getSearchType() {
@@ -35,7 +36,13 @@ public class LogCat {
 	public void setInteractionType(String interactionType) {
 		this.interactionType = interactionType;
 	}
-	
-	
+
+	public String getInteractionParams() {
+		return interactionParams;
+	}
+
+	public void setInteractionParams(String interactionParams) {
+		this.interactionParams = interactionParams;
+	}
 	
 }

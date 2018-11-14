@@ -23,7 +23,7 @@ import com.github.javaparser.symbolsolver.javaparser.Navigator;
 public class Enhancer {
 
 	public static List<Operation> operations;
-	
+
 	public static void main(String[] args) throws IOException {
 		FileInputStream in = new FileInputStream(
 				"/home/oreste/eclipse-workspace/Enhancer/enhancer/files/original_espresso_test.java");
@@ -33,10 +33,9 @@ public class Enhancer {
 
 		addPrivateField(cu);
 
-		// creates the getActivityInstanceMethod
 		addActivityInstanceMethod(cu);
 
-		// visit and print the methods names
+		// visit the body of all methods in the class
 		cu.accept(new MethodVisitor(), null);
 		// System.out.println(cu.toString());
 
@@ -105,14 +104,15 @@ public class Enhancer {
 				// scan each statement
 				for (Statement s : nodes) {
 					LogCat log = parseStatement(s);
-
-					// add each statement, if is not a test then log == null
+					
+					// if "s" is not a test then log == null
 					logs.add(log);
+
+					// copy each statement because using nodes in enhanceMethod removes the elements
+					// from the compilation unit and goes outOfBounds
 					tests.add(s);
 				}
-
-				if (logs.size() > 0 && tests.size() > 0)
-					enhanceMethod(n, logs, tests);
+				enhanceMethod(n, logs, tests);
 			}
 			return n;
 		}
@@ -130,11 +130,12 @@ public class Enhancer {
 			boolean firstTest = true;
 
 			for (int i = 0; i < logs.size(); i++) {
-				// remove each statement even if it's not a test to maintain order
+				// remove each statement from the compilation unit even if it's not a test to
+				// maintain order
 				b.remove(tests.get(i));
 
 				LogCat logValues = null;
-				// if log != null then the statement is a test and we have to enhance the class
+				// if log != null then the statement is a test and we need to enhance the method
 				if ((logValues = logs.get(i)) != null) {
 					if (firstTest) {
 						firstTest = false;
@@ -144,10 +145,17 @@ public class Enhancer {
 						b.addStatement(date);
 						b.addStatement(activity);
 					}
+					Statement log = null;
+					if (logValues.getInteractionParams().isEmpty())
+						log = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\""
+								+ logValues.getSearchType() + "\"" + "," + "\"" + logValues.getSearchKw() + "\"" + ","
+								+ "\"" + logValues.getInteractionType() + "\"" + ");");
+					else
+						log = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\""
+								+ logValues.getSearchType() + "\"" + "," + "\"" + logValues.getSearchKw() + "\"" + ","
+								+ "\"" + logValues.getInteractionType() + "\"" + "," + "\""
+								+ logValues.getInteractionParams() + "\"" + ");");
 
-					Statement log = JavaParser.parseStatement("Log.d(\"touchtest\", now.getTime() + \", \" + \""
-							+ logValues.getSearchType() + "\" +" + " \", \" + \"" + logValues.getSearchKw()
-							+ "\" + \", \" + \"" + logValues.getInteractionType() + "\");");
 					b.addStatement(log);
 
 					b.addStatement(screenCapture);
@@ -163,8 +171,8 @@ public class Enhancer {
 	public static void parseJsonScope(JSONObject j) {
 		try {
 			parseJsonScope(j = j.getJSONObject("scope"));
-			//gets onView or onData and all embedded performs or checks but the last one
-//			System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
+			// gets onView or onData and all embedded performs or checks but the last one
+			// System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
 			// TODO: handle exception
@@ -187,14 +195,14 @@ public class Enhancer {
 	private static void methodOverloading(JSONArray a, int i) {
 		try {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
-			
-			if(a.getJSONObject(i).getString("type").equals("FieldAccessExpr"))
+
+			if (a.getJSONObject(i).getString("type").equals("FieldAccessExpr"))
 				operations.add(new Operation("", name));
-			else if(operations.size() == 0 || operations.get(operations.size()-1).getName() != "")
+			else if (operations.size() == 0 || operations.get(operations.size() - 1).getName() != "")
 				operations.add(new Operation(name, ""));
 			else
-				operations.get(operations.size()-1).setName(name);
-			
+				operations.get(operations.size() - 1).setName(name);
+
 			parseJsonArgument(null, a, ++i);
 			methodOverloading(a, i);
 		} catch (JSONException e) {
@@ -215,38 +223,41 @@ public class Enhancer {
 			String json = printer.output(s);
 
 			operations = new ArrayList<Operation>();
-			
+
 			try {
 				JSONObject j = new JSONObject(json);
-//				System.out.println(j.toString());
+				// System.out.println(j.toString());
 				j = j.getJSONObject("expression");
 
 				parseJsonScope(j);
-				//gets the last check or perform
-//				System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
+				// gets the last check or perform
+				// System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
 				parseJsonArgument(j, null, 0);
-				
+
 				System.out.println(operations.toString());
 
-				logValues = getLog(operations);
+				logValues = getLog();
 			} catch (JSONException e) {
-				//CAN'T PARSE STATEMENT
+				// CAN'T PARSE STATEMENT
 			}
 		}
 		return logValues;
 	}
 
-	// withIdModel can be used with identifiers
-	// withTextModel can be used with values
-	public static LogCat getLog(List<Operation> op) {
+	public static LogCat getLog() {
 		LogCat log = null;
 
-		String searchType = ViewMatchers.getSearchType("");
-		String searchKw = "";
-		String interactionType = "";
+		// this works only on test cases with one matcher and one action
+		String searchType = ViewMatchers.getSearchType(operations.get(0).getName());
+		String searchKw = operations.get(0).getParameter();
+		String interactionType = operations.get(1).getName();
+		String interactionParams = operations.get(1).getParameter();;
 
-		if (!searchType.isEmpty() && !searchKw.isEmpty() && !interactionType.isEmpty()) {
-			log = new LogCat(searchType, searchKw, interactionType);
+		if (!searchType.isEmpty() && !interactionType.isEmpty()) {
+			if (interactionParams.isEmpty())
+				log = new LogCat(searchType, searchKw, interactionType, "");
+			else
+				log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 		}
 		return log;
 	}

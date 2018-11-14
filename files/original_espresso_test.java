@@ -102,21 +102,15 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
 
-        onView(allOf(withText("about"), withContentDescription("testo"),withText("show"))).perform(click());
+        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 
-        onView(withId(R.id.fab_expand_menu_button)).perform(click());
+        onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
 
-        onView(withId(R.id.fab_expand_menu_button)).perform(typeText(0), click()).check(doesNotExist(),doesNotExist());
-
-        onView(withText("Text note")).perform(click());
-
-        onView(withId(R.id.detail_title)).perform(click());
+        onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
 
         onView(withContentDescription("drawer open")).perform(click());
 
-        onView(withContentDescription("drawer open")).perform(click());
-
-        onView(withId(R.id.settings_view)).perform(click());
+        onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
     }
 
