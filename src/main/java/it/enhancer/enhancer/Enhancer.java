@@ -23,6 +23,7 @@ import com.github.javaparser.symbolsolver.javaparser.Navigator;
 public class Enhancer {
 
 	public static List<Operation> operations;
+	public static boolean firstTest;
 
 	public static void main(String[] args) throws IOException {
 		FileInputStream in = new FileInputStream(
@@ -98,74 +99,17 @@ public class Enhancer {
 			if (body.contains("onView") || body.contains("onData")) {
 
 				NodeList<Statement> nodes = n.getStatements();
-				NodeList<Statement> tests = new NodeList<Statement>();
-				List<LogCat> logs = new ArrayList<LogCat>();
+				firstTest = true;
 
 				// scan each statement
-				for (Statement s : nodes) {
-					LogCat log = parseStatement(s);
-					
-					// if "s" is not a test then log == null
-					logs.add(log);
-
-					// copy each statement because using nodes in enhanceMethod removes the elements
-					// from the compilation unit and goes outOfBounds
-					tests.add(s);
-				}
-				enhanceMethod(n, logs, tests);
+				int i = 0;
+				while (i < nodes.size())
+					// gets the new index because the method has been enhanced
+					i = parseStatement(n, nodes.get(i), i);
 			}
 			return n;
 		}
 
-		private void enhanceMethod(BlockStmt b, List<LogCat> logs, NodeList<Statement> tests) {
-			Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
-			Statement date = JavaParser.parseStatement("now = new Date();");
-			Statement firstTestActivity = JavaParser.parseStatement("Activity activity = getActivityInstance();");
-			Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
-			Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
-			Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
-			TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(2000);\n"
-					+ "        } catch (Exception e) {\n" + "\n" + "        }");
-
-			boolean firstTest = true;
-
-			for (int i = 0; i < logs.size(); i++) {
-				// remove each statement from the compilation unit even if it's not a test to
-				// maintain order
-				b.remove(tests.get(i));
-
-				LogCat logValues = null;
-				// if log != null then the statement is a test and we need to enhance the method
-				if ((logValues = logs.get(i)) != null) {
-					if (firstTest) {
-						firstTest = false;
-						b.addStatement(firstTestDate);
-						b.addStatement(firstTestActivity);
-					} else {
-						b.addStatement(date);
-						b.addStatement(activity);
-					}
-					Statement log = null;
-					if (logValues.getInteractionParams().isEmpty())
-						log = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\""
-								+ logValues.getSearchType() + "\"" + "," + "\"" + logValues.getSearchKw() + "\"" + ","
-								+ "\"" + logValues.getInteractionType() + "\"" + ");");
-					else
-						log = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\""
-								+ logValues.getSearchType() + "\"" + "," + "\"" + logValues.getSearchKw() + "\"" + ","
-								+ "\"" + logValues.getInteractionType() + "\"" + "," + "\""
-								+ logValues.getInteractionParams() + "\"" + ");");
-
-					b.addStatement(log);
-
-					b.addStatement(screenCapture);
-					b.addStatement(dumpScreen);
-					b.addStatement(tests.get(i));
-					b.addStatement(tryStmt);
-				} else
-					b.addStatement(tests.get(i));
-			}
-		}
 	}
 
 	public static void parseJsonScope(JSONObject j) {
@@ -215,9 +159,8 @@ public class Enhancer {
 		}
 	}
 
-	public static LogCat parseStatement(Statement s) {
-		LogCat logValues = null;
-
+	public static int parseStatement(BlockStmt b, Statement s, int i) {
+		int index = i;
 		if (s.toString().contains("onView") || s.toString().contains("onData")) {
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
@@ -232,34 +175,87 @@ public class Enhancer {
 				parseJsonScope(j);
 				// gets the last check or perform
 				// System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
+				if(j.getJSONObject("name").getString("identifier").equals("check"))
+					operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
+				
 				parseJsonArgument(j, null, 0);
 
 				System.out.println(operations.toString());
 
-				logValues = getLog();
+				// returns the next index after enhancing the method
+				return index = enhanceMethod(b, s, i);
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
 			}
 		}
-		return logValues;
+		// return the next index if the statement is not a test
+		return ++index;
 	}
 
-	public static LogCat getLog() {
+	private static int enhanceMethod(BlockStmt b, Statement s, int i) {
+		Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
+		Statement date = JavaParser.parseStatement("now = new Date();");
+		Statement firstTestActivity = JavaParser.parseStatement("Activity activity = getActivityInstance();");
+		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
+		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
+		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
+		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(2000);\n"
+				+ "        } catch (Exception e) {\n" + "\n" + "        }");
+
 		LogCat log = null;
 
 		// this works only on test cases with one matcher and one action
 		String searchType = ViewMatchers.getSearchType(operations.get(0).getName());
 		String searchKw = operations.get(0).getParameter();
 		String interactionType = operations.get(1).getName();
-		String interactionParams = operations.get(1).getParameter();;
+		String interactionParams = operations.get(1).getParameter();
 
-		if (!searchType.isEmpty() && !interactionType.isEmpty()) {
-			if (interactionParams.isEmpty())
-				log = new LogCat(searchType, searchKw, interactionType, "");
-			else
-				log = new LogCat(searchType, searchKw, interactionType, interactionParams);
+		if (!searchType.isEmpty() && !interactionType.isEmpty())
+			log = new LogCat(searchType, searchKw, interactionType, interactionParams);
+
+		Statement st = s;
+		b.remove(st);
+
+		if (firstTest) {
+			firstTest = false;
+			b.addStatement(i, firstTestDate);
+			b.addStatement(++i, firstTestActivity);
+		} else {
+			b.addStatement(i, date);
+			b.addStatement(++i, activity);
 		}
-		return log;
-	}
 
+		Statement l = null;
+		
+		// default handles the normal behavior of the parameters. Es: click(), typeText("TextToBeReplaced")
+		switch (interactionType) {
+		case "replaceText":
+			b.addStatement(++i,
+					JavaParser.parseStatement("int textToBeReplacedLength = ((TextView) activity.findViewById(R.id."
+							+ searchKw + ")).getText().length();"));
+			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
+					+ "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
+					+ "\", String.valueOf(textToBeReplacedLength)+\";\"+" + "\"" + log.getInteractionParams() + "\""
+					+ ");");
+			break;
+		default:
+			if (log.getInteractionParams().isEmpty())
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType() + "\"" + ");");
+			else
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType() + "\"" + ","
+						+ "\"" + log.getInteractionParams() + "\"" + ");");
+			break;
+		}
+
+		b.addStatement(++i, l);
+
+		b.addStatement(++i, screenCapture);
+		b.addStatement(++i, dumpScreen);
+		b.addStatement(++i, st);
+		b.addStatement(++i, tryStmt);
+
+		return ++i;
+	}
 }
