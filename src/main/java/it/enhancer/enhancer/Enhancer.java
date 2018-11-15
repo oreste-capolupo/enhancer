@@ -62,6 +62,9 @@ public class Enhancer {
 		cu.addImport("java.util.Collection", false, false);
 		cu.addImport("android.support.test.InstrumentationRegistry", false, false);
 		cu.addImport("android.util.Log", false, false);
+		cu.addImport("android.widget.TextView", false, false);
+		cu.addImport("android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
+		cu.addImport("android.app.Activity", false, false);
 	}
 
 	private static void addActivityInstanceMethod(CompilationUnit cu) {

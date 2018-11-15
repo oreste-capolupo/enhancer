@@ -108,7 +108,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
 
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
 
-        onView(withId(R.id.detail_title)).perform(clearText());
+        onView(withContentDescription("drawer open")).perform(click());
 
         onView(withContentDescription("drawer open")).perform(click());
 

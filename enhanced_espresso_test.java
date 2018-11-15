@@ -81,6 +81,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
 import it.feio.android.omninotes.TOGGLETools;
+import android.widget.TextView;
 
 public class BaseEspressoTest extends BaseAndroidTestCase {
 
@@ -132,15 +133,14 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        int textToBeClearedLength25 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "clearText", String.valueOf(textToBeClearedLength25));
+        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        onView(withId(R.id.detail_title)).perform(clearText());
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
+        onView(withContentDescription("drawer open")).perform(click());
         now = new Date();
         activity = getActivityInstance();
         TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
