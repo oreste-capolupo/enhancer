@@ -121,11 +121,22 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        int textToBeReplacedLength = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength) + ";" + "Replacement");
+        int textToBeReplacedLength17 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength17) + ";" + "Replacement");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
+        int textToBeClearedLength25 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "clearText", String.valueOf(textToBeClearedLength25));
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.detail_title)).perform(clearText());
         try {
             Thread.sleep(2000);
         } catch (Exception e) {

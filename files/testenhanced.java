@@ -43,15 +43,18 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.widget.TextView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.w3c.dom.Text;
 
 import it.feio.android.omninotes.TOGGLETools;
 
@@ -65,6 +68,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static android.support.test.espresso.action.ViewActions.doubleClick;
 import static android.support.test.espresso.action.ViewActions.longClick;
 import static android.support.test.espresso.action.ViewActions.pressBack;
 import static android.support.test.espresso.action.ViewActions.pressImeActionButton;
@@ -109,78 +113,85 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
 
         Date now = new Date();
         Activity activity = getActivityInstance();
-        Log.d("touchtest", now.getTime() + ", " + "id" + ", " + "fab_expand_menu_button" + ", " + "click");
+        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
 
-        onView(withId(R.id.fab_expand_menu_button)).perform(click());
+        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
 
         }
-        now = new Date();
+        /*now = new Date();
         activity = getActivityInstance();
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        Log.d("touchtest", now.getTime() + ", " + "text" + ", " + "Text note" + ", " + "click");
-
-
+        TOGGLETools.LogInteraction(now, "text", "Text note", "click");
 
         onView(withText("Text note")).perform(click());
 
 
-
-
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
 
-        }
+        }*/
 
 
         now = new Date();
         activity = getActivityInstance();
-        Log.d("touchtest", now.getTime() + ", " + "id" + ", " + "detail_title" + ", " + "click");
+        TOGGLETools.LogInteraction(now,"id", "detail_title", "typetext", "TextToBeReplaced");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
 
-        onView(withId(R.id.detail_title)).perform(click());
+        onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
 
 
-
-
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-
-        }
 
 
         now = new Date();
         activity = getActivityInstance();
-        Log.d("touchtest", now.getTime() + ", " + "content-desc" + ", " + "drawer open" + ", " + "click");
+
+        int texttobereplacedlength = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "replacetext", String.valueOf(texttobereplacedlength) + ";" + "Replacement");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
 
-        onView(withContentDescription("drawer open")).perform(click());
-
-
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
 
         }
 
+        onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
+
+
+
         now = new Date();
         activity = getActivityInstance();
-        Log.d("touchtest", now.getTime() + ", " + "content-desc" + ", " + "drawer open" + ", " + "click");
+        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
 
         onView(withContentDescription("drawer open")).perform(click());
 
+
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+
+        }
+
+        now = new Date();
+        activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+
+        onView(withContentDescription("drawer open")).perform(click());
+
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
@@ -188,16 +199,19 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        Log.d("touchtest", now.getTime() + ", " + "id" + ", " + "settings_view" + ", " + "click");
+        TOGGLETools.LogInteraction(now, "id", "settings_view", "check");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
 
-        onView(withId(R.id.settings_view)).perform(click());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
 
-        }
+        onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
+
+
+
+        //check dell'intero schermo
+        //TOGGLETools.TakeScreenCapture(now, activity);
+        //Log.d("touchtest", now.getTime() + ", " + "fullcheck");
+        //se trovo fullcheck non devo ritagliare ma soltanto aggiungere check di tutto lo schermo
 
 
 

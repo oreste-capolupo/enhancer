@@ -175,9 +175,9 @@ public class Enhancer {
 				parseJsonScope(j);
 				// gets the last check or perform
 				// System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
-				if(j.getJSONObject("name").getString("identifier").equals("check"))
+				if (j.getJSONObject("name").getString("identifier").equals("check"))
 					operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
-				
+
 				parseJsonArgument(j, null, 0);
 
 				System.out.println(operations.toString());
@@ -226,17 +226,28 @@ public class Enhancer {
 		}
 
 		Statement l = null;
+		String stmt = "";
 		
 		// default handles the normal behavior of the parameters. Es: click(), typeText("TextToBeReplaced")
 		switch (interactionType) {
 		case "replaceText":
-			b.addStatement(++i,
-					JavaParser.parseStatement("int textToBeReplacedLength = ((TextView) activity.findViewById(R.id."
-							+ searchKw + ")).getText().length();"));
+			stmt = "int textToBeReplacedLength"+i+" = ((TextView) activity.findViewById(R.id." + searchKw
+					+ ")).getText().length();";
+			b.addStatement(++i, JavaParser.parseStatement(stmt));
+
 			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
 					+ "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
-					+ "\", String.valueOf(textToBeReplacedLength)+\";\"+" + "\"" + log.getInteractionParams() + "\""
+					+ "\", String.valueOf(textToBeReplacedLength"+(i-1)+")+\";\"+" + "\"" + log.getInteractionParams() + "\""
 					+ ");");
+			break;
+		case "clearText":
+			stmt = "int textToBeClearedLength"+i+" = ((TextView) activity.findViewById(R.id." + searchKw
+					+ ")).getText().length();";
+			b.addStatement(++i, JavaParser.parseStatement(stmt));
+			
+			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
+					+ "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
+					+ "\", String.valueOf(textToBeClearedLength"+(i-1)+"));");
 			break;
 		default:
 			if (log.getInteractionParams().isEmpty())
@@ -258,4 +269,5 @@ public class Enhancer {
 
 		return ++i;
 	}
+
 }
