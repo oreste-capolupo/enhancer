@@ -26,8 +26,7 @@ public class Enhancer {
 	public static boolean firstTest;
 
 	public static void main(String[] args) throws IOException {
-		FileInputStream in = new FileInputStream(
-				"/home/oreste/eclipse-workspace/Enhancer/enhancer/files/original_espresso_test.java");
+		FileInputStream in = new FileInputStream("files/original_espresso_test.java");
 		CompilationUnit cu = JavaParser.parse(in);
 
 		addImportsInCompilationUnit(cu);
@@ -41,7 +40,7 @@ public class Enhancer {
 		// System.out.println(cu.toString());
 
 		// generate enhanced java file
-		PrintWriter w = new PrintWriter("enhanced_espresso_test.java", "UTF-8");
+		PrintWriter w = new PrintWriter("files/enhanced_espresso_test.java", "UTF-8");
 		w.print(cu.toString());
 		w.close();
 	}
@@ -61,10 +60,8 @@ public class Enhancer {
 		cu.addImport("android.app.Instrumentation", false, false);
 		cu.addImport("java.util.Collection", false, false);
 		cu.addImport("android.support.test.InstrumentationRegistry", false, false);
-		cu.addImport("android.util.Log", false, false);
 		cu.addImport("android.widget.TextView", false, false);
 		cu.addImport("android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
-		cu.addImport("android.app.Activity", false, false);
 	}
 
 	private static void addActivityInstanceMethod(CompilationUnit cu) {
@@ -142,8 +139,11 @@ public class Enhancer {
 	private static void methodOverloading(JSONArray a, int i) {
 		try {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
+			String type = a.getJSONObject(i).getString("type");
 
-			if (a.getJSONObject(i).getString("type").equals("FieldAccessExpr"))
+			if (type.equals("FieldAccessExpr"))
+				operations.add(new Operation("", "\"" + name + "\""));
+			else if (type.equals("NameExpr"))
 				operations.add(new Operation("", name));
 			else if (operations.size() == 0 || operations.get(operations.size() - 1).getName() != "")
 				operations.add(new Operation(name, ""));
@@ -155,7 +155,8 @@ public class Enhancer {
 		} catch (JSONException e) {
 			// TODO: handle exception
 			try {
-				operations.add(new Operation("", a.getJSONObject(0).getString("value")));
+				String value = a.getJSONObject(0).getString("value");
+				operations.add(new Operation("", "\"" + value + "\""));
 			} catch (JSONException e2) {
 				// TODO: handle exception
 			}
@@ -230,36 +231,38 @@ public class Enhancer {
 
 		Statement l = null;
 		String stmt = "";
-		
+
 		// default handles the normal behavior of the parameters. Es: click(), typeText("TextToBeReplaced")
 		switch (interactionType) {
 		case "replaceText":
-			stmt = "int textToBeReplacedLength"+i+" = ((TextView) activity.findViewById(R.id." + searchKw
-					+ ")).getText().length();";
+
+			// substring removes the " from the string
+			stmt = "int textToBeReplacedLength" + i + " = ((TextView) activity.findViewById(R.id."
+					+ searchKw.substring(1, searchKw.length() - 1) + ")).getText().length();";
+			b.addStatement(++i, JavaParser.parseStatement(stmt));
+
+			l = JavaParser.parseStatement(
+					"TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+							+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
+							+ (i - 1) + ")+\";\"+" + "String.valueOf(" + log.getInteractionParams() + ")" + ");");
+			break;
+		case "clearText":
+			stmt = "int textToBeClearedLength" + i + " = ((TextView) activity.findViewById(R.id."
+					+ searchKw.substring(1, searchKw.length() - 1) + ")).getText().length();";
 			b.addStatement(++i, JavaParser.parseStatement(stmt));
 
 			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
-					+ "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
-					+ "\", String.valueOf(textToBeReplacedLength"+(i-1)+")+\";\"+" + "\"" + log.getInteractionParams() + "\""
-					+ ");");
-			break;
-		case "clearText":
-			stmt = "int textToBeClearedLength"+i+" = ((TextView) activity.findViewById(R.id." + searchKw
-					+ ")).getText().length();";
-			b.addStatement(++i, JavaParser.parseStatement(stmt));
-			
-			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
-					+ "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
-					+ "\", String.valueOf(textToBeClearedLength"+(i-1)+"));");
+					+ log.getSearchKw() + "," + "\"" + log.getInteractionType()
+					+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 			break;
 		default:
 			if (log.getInteractionParams().isEmpty())
 				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
-						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType() + "\"" + ");");
+						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ");");
 			else
 				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
-						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType() + "\"" + ","
-						+ "\"" + log.getInteractionParams() + "\"" + ");");
+						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ","
+						+ "String.valueOf(" + log.getInteractionParams() + ")" + ");");
 			break;
 		}
 

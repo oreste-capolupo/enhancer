@@ -88,6 +88,8 @@ import static org.hamcrest.core.IsNot.not;
 
 public class BaseEspressoTest extends BaseAndroidTestCase {
 
+    public static final String THIRD_TEXT = "Third Text";
+
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class, false, false);
 
@@ -110,10 +112,28 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
 
         onView(withContentDescription("drawer open")).perform(click());
 
-        onView(withContentDescription("drawer open")).perform(click());
+
+        String drawerDesc = "drawer open";
+        onView(withContentDescription(drawerDesc)).perform(click());
 
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
+        onView(withId(R.id.email)).perform(typeText("abc"));
+        
+        int number = 123456;
+        onView(withId(R.id.editBatchCode)).perform(typeText(number));
+
+        String replacement = "Replacement";
+        onView(withId(R.id.name_field)).perform(replaceText(replacement));
+
+        onView(withId(R.id.cardHolderNameEditText)).perform(clearText());
+
+        onView(withId(R.id.map)).perform(doubleClick());
+
+        onView(withText(THIRD_TEXT)).perform(longClick());
+
+        // this does not work properly because the parameter is a field and not a simple variable   
+        //onView(withContentDescription(cb.name)).perform(longClick());
     }
 
 
