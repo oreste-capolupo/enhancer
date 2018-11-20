@@ -126,24 +126,47 @@ public class Enhancer {
 
 	public static void parseJsonArgument(JSONObject j, JSONArray a, int i) {
 		try {
+			StringBuffer field = new StringBuffer("");
 			if (a == null)
 				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
-			else
+			else {
 				parseJsonArgument(j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
-			methodOverloading(a, i);
+				parseScopeInArgument((JSONObject) a.get(0), field);
+			}
+
+			// field is empty if the parameter is not a FieldAccessExpr otherwise contains
+			// only the first part ES: obj. or R.id.
+			methodOverloading(a, i, field);
 		} catch (JSONException e) {
 			// TODO: handle exception
 		}
 	}
 
-	private static void methodOverloading(JSONArray a, int i) {
+	private static void parseScopeInArgument(JSONObject j, StringBuffer field) {
+		try {
+			parseScopeInArgument(j = j.getJSONObject("scope"), field);
+			String name = j.getJSONObject("name").getString("identifier");
+			field.append(name + ".");
+		} catch (JSONException e) {
+
+		}
+	}
+
+	private static void methodOverloading(JSONArray a, int i, StringBuffer field) {
 		try {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 			String type = a.getJSONObject(i).getString("type");
 
-			if (type.equals("FieldAccessExpr"))
+			// if it's a field and does not start with R.id. then adds the last missing part to
+			// the string and overrides the parameter
+			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")) {
+				field.append(name);
+				name = field.toString();
+			}
+
+			if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id."))
 				operations.add(new Operation("", "\"" + name + "\""));
-			else if (type.equals("NameExpr"))
+			else if (type.equals("FieldAccessExpr") || type.equals("NameExpr"))
 				operations.add(new Operation("", name));
 			else if (operations.size() == 0 || operations.get(operations.size() - 1).getName() != "")
 				operations.add(new Operation(name, ""));
@@ -151,7 +174,7 @@ public class Enhancer {
 				operations.get(operations.size() - 1).setName(name);
 
 			parseJsonArgument(null, a, ++i);
-			methodOverloading(a, i);
+			methodOverloading(a, i, field);
 		} catch (JSONException e) {
 			// TODO: handle exception
 			try {
@@ -232,7 +255,7 @@ public class Enhancer {
 		Statement l = null;
 		String stmt = "";
 
-		// default handles the normal behavior of the parameters. Es: click(), typeText("TextToBeReplaced")
+		// default handles the normal behavior of the parameters. ES: click(), typeText("TextToBeReplaced")
 		switch (interactionType) {
 		case "replaceText":
 
@@ -244,7 +267,7 @@ public class Enhancer {
 			l = JavaParser.parseStatement(
 					"TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
 							+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
-							+ (i - 1) + ")+\";\"+" + "String.valueOf(" + log.getInteractionParams() + ")" + ");");
+							+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
 			break;
 		case "clearText":
 			stmt = "int textToBeClearedLength" + i + " = ((TextView) activity.findViewById(R.id."
@@ -262,7 +285,7 @@ public class Enhancer {
 			else
 				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
 						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ","
-						+ "String.valueOf(" + log.getInteractionParams() + ")" + ");");
+						+ log.getInteractionParams() + ");");
 			break;
 		}
 
