@@ -22,18 +22,19 @@ import com.github.javaparser.symbolsolver.javaparser.Navigator;
 
 public class Enhancer {
 
+	public static CompilationUnit cu;
 	public static List<Operation> operations;
 	public static boolean firstTest;
 
 	public static void main(String[] args) throws IOException {
 		FileInputStream in = new FileInputStream("files/original_espresso_test.java");
-		CompilationUnit cu = JavaParser.parse(in);
+		cu = JavaParser.parse(in);
 
-		addImportsInCompilationUnit(cu);
+		addImportsInCompilationUnit();
 
-		addPrivateField(cu);
+		addPrivateField();
 
-		addActivityInstanceMethod(cu);
+		addActivityInstanceMethod();
 
 		// visit the body of all methods in the class
 		cu.accept(new MethodVisitor(), null);
@@ -45,14 +46,14 @@ public class Enhancer {
 		w.close();
 	}
 
-	private static void addPrivateField(CompilationUnit cu) {
+	private static void addPrivateField() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 
 		BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
 		ci.getMembers().add(0, field);
 	}
 
-	private static void addImportsInCompilationUnit(CompilationUnit cu) {
+	private static void addImportsInCompilationUnit() {
 		// imports only if it does not exist
 		cu.addImport("it.feio.android.omninotes.TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
@@ -64,7 +65,7 @@ public class Enhancer {
 		cu.addImport("android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
 	}
 
-	private static void addActivityInstanceMethod(CompilationUnit cu) {
+	private static void addActivityInstanceMethod() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 		MethodDeclaration md = new MethodDeclaration();
 
