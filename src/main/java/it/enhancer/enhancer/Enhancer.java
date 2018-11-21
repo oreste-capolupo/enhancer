@@ -116,7 +116,7 @@ public class Enhancer {
 	public static void parseJsonScope(JSONObject j) {
 		try {
 			parseJsonScope(j = j.getJSONObject("scope"));
-			// gets onView or onData and all embedded performs or checks but the last one
+			// gets onView or onData and all nested performs and checks but the last one
 			// System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
@@ -158,9 +158,10 @@ public class Enhancer {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 			String type = a.getJSONObject(i).getString("type");
 
-			// if it's a field and does not start with R.id. then adds the last missing part to
-			// the string and overrides the parameter
-			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")) {
+			// if it's a field and does not start with R.id. then adds the last missing part
+			// to the string and overrides the parameter
+			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
+					&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")) {
 				field.append(name);
 				name = field.toString();
 			}
@@ -176,13 +177,34 @@ public class Enhancer {
 
 			parseJsonArgument(null, a, ++i);
 			methodOverloading(a, i, field);
+
 		} catch (JSONException e) {
 			// TODO: handle exception
 			try {
 				String value = a.getJSONObject(0).getString("value");
 				operations.add(new Operation("", "\"" + value + "\""));
 			} catch (JSONException e2) {
-				// TODO: handle exception
+				// saves parameters when overloading is present
+				try {
+					String type = a.getJSONObject(0).getString("type");
+					String name = a.getJSONObject(0).getJSONObject("name").getString("identifier");
+
+					// if this parameter has not been saved yet saves it
+					if (operations.get(operations.size() - 1).getParameter().equals(field.toString()) == false && (
+							(operations.get(operations.size() - 1).getParameter().equals("\"" + name + "\"") == false
+								&& type.equals("FieldAccessExpr")) || 
+							(operations.get(operations.size() - 1).getParameter().equals(name) == false
+								&& type.equals("NameExpr")))) {
+	
+						if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id."))
+							operations.add(new Operation("", "\"" + name + "\""));
+						else
+							operations.add(new Operation("", name));
+					}
+				} catch (Exception e3) {
+					// TODO: handle exception
+				}
+
 			}
 		}
 	}
@@ -256,10 +278,12 @@ public class Enhancer {
 		Statement l = null;
 		String stmt = "";
 
-		// default handles the normal behavior of the parameters. ES: click(), typeText("TextToBeReplaced")
+		// default handles the normal behavior of the parameters. ES: click(),
+		// typeText("TextToBeReplaced")
 		switch (interactionType) {
 		case "replaceText":
-
+			// the 'i' in the variable name is used to make it unique in case we have
+			// multiple interactions of the same type
 			// substring removes the " from the string
 			stmt = "int textToBeReplacedLength" + i + " = ((TextView) activity.findViewById(R.id."
 					+ searchKw.substring(1, searchKw.length() - 1) + ")).getText().length();";

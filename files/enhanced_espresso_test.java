@@ -102,6 +102,16 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
         Activity activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "text", var, "withId", "edit_filter_name");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(allOf(withText(var), withId(R.id.edit_filter_name), withText("ciao"))).perform(replaceText(FILTER_NAME), typeText("sisi"));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
         TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longClick");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
@@ -122,8 +132,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        int textToBeReplacedLength17 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength17) + ";" + "Replacement");
+        int textToBeReplacedLength24 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength24) + ";" + "Replacement");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
@@ -206,8 +216,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         String replacement = "Replacement";
         now = new Date();
         activity = getActivityInstance();
-        int textToBeReplacedLength77 = ((TextView) activity.findViewById(R.id.name_field)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "name_field", "replaceText", String.valueOf(textToBeReplacedLength77) + ";" + replacement);
+        int textToBeReplacedLength84 = ((TextView) activity.findViewById(R.id.name_field)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "name_field", "replaceText", String.valueOf(textToBeReplacedLength84) + ";" + replacement);
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.name_field)).perform(replaceText(replacement));
@@ -217,8 +227,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        int textToBeClearedLength85 = ((TextView) activity.findViewById(R.id.cardHolderNameEditText)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "cardHolderNameEditText", "clearText", String.valueOf(textToBeClearedLength85));
+        int textToBeClearedLength92 = ((TextView) activity.findViewById(R.id.cardHolderNameEditText)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "cardHolderNameEditText", "clearText", String.valueOf(textToBeClearedLength92));
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.cardHolderNameEditText)).perform(clearText());

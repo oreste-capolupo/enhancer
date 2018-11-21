@@ -102,6 +102,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
 
+        onView(allOf(withText(var), withId(R.id.edit_filter_name), withText("ciao"))).perform(replaceText(FILTER_NAME), typeText("sisi"));
+
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
@@ -109,7 +111,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
 
         onView(withContentDescription("drawer open")).perform(click());
-
 
         String drawerDesc = "drawer open";
         onView(withContentDescription(drawerDesc)).perform(click());
@@ -121,7 +122,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
         onView(withId(R.id.email)).perform(typeText("abc"));
-        
+
         String number = "123456";
         onView(withId(R.id.editBatchCode)).perform(typeText(number));
 
