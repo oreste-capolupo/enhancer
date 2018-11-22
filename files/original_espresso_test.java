@@ -102,7 +102,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
 
-        onView(allOf(withText(var), withId(R.id.edit_filter_name), withText("ciao"))).perform(replaceText(FILTER_NAME), typeText("sisi"));
+        onView(allOf(withText(var), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER_NAME), typeText("sisi"));
 
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 

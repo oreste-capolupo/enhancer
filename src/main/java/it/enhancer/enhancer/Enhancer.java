@@ -184,7 +184,7 @@ public class Enhancer {
 				String value = a.getJSONObject(0).getString("value");
 				operations.add(new Operation("", "\"" + value + "\""));
 			} catch (JSONException e2) {
-				// saves parameters when overloading is present
+				// saves all parameters after the first one when overloading is present 
 				try {
 					String type = a.getJSONObject(0).getString("type");
 					String name = a.getJSONObject(0).getJSONObject("name").getString("identifier");
@@ -196,8 +196,16 @@ public class Enhancer {
 							(operations.get(operations.size() - 1).getParameter().equals(name) == false
 								&& type.equals("NameExpr")))) {
 	
+						if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
+								&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")) {
+							field.append(name);
+							name = field.toString();
+						}
+						
 						if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id."))
 							operations.add(new Operation("", "\"" + name + "\""));
+						else if (type.equals("FieldAccessExpr"))
+							operations.add(new Operation("", field.toString()));
 						else
 							operations.add(new Operation("", name));
 					}

@@ -102,10 +102,10 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
         Activity activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "text", var, "withId", "edit_filter_name");
+        TOGGLETools.LogInteraction(now, "text", var, "withText", a.name);
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        onView(allOf(withText(var), withId(R.id.edit_filter_name), withText("ciao"))).perform(replaceText(FILTER_NAME), typeText("sisi"));
+        onView(allOf(withText(var), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER_NAME), typeText("sisi"));
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
