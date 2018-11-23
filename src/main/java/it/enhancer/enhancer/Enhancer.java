@@ -158,61 +158,109 @@ public class Enhancer {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 			String type = a.getJSONObject(i).getString("type");
 
-			// if it's a field and does not start with R.id. then adds the last missing part
-			// to the string and overrides the parameter
 			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
 					&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")) {
-				field.append(name);
-				name = field.toString();
+				String fd = field.toString();
+				name = fd.concat(name);
 			}
 
-			if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id."))
-				operations.add(new Operation("", "\"" + name + "\""));
-			else if (type.equals("FieldAccessExpr") || type.equals("NameExpr"))
-				operations.add(new Operation("", name));
-			else if (operations.size() == 0 || operations.get(operations.size() - 1).getName() != "")
-				operations.add(new Operation(name, ""));
-			else
-				operations.get(operations.size() - 1).setName(name);
+			if (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)) {
+				if (operations.size() > 0 && !operations.get(operations.size() - 1).getParameter().isEmpty()) {
+					Operation lastOp = operations.get(operations.size() - 1);
+					String oldParam = lastOp.getParameter();
+
+					lastOp.setParameter(name + "(" + oldParam + ")");
+				} else
+					operations.add(new Operation("", name + "()"));
+			} else if (type.equals("MethodCallExpr")) {
+				if (operations.size() == 0 || operations.get(operations.size() - 1).getName() != "")
+					operations.add(new Operation(name, ""));
+				else
+					operations.get(operations.size() - 1).setName(name);
+			}
 
 			parseJsonArgument(null, a, ++i);
 			methodOverloading(a, i, field);
 
 		} catch (JSONException e) {
-			// TODO: handle exception
-			try {
-				String value = a.getJSONObject(0).getString("value");
-				operations.add(new Operation("", "\"" + value + "\""));
-			} catch (JSONException e2) {
-				// saves all parameters after the first one when overloading is present 
-				try {
-					String type = a.getJSONObject(0).getString("type");
-					String name = a.getJSONObject(0).getJSONObject("name").getString("identifier");
+			// add parameters to the operation list
+			methodParameters(a, field, 0);
+		}
+	}
 
-					// if this parameter has not been saved yet saves it
-					if (operations.get(operations.size() - 1).getParameter().equals(field.toString()) == false && (
-							(operations.get(operations.size() - 1).getParameter().equals("\"" + name + "\"") == false
-								&& type.equals("FieldAccessExpr")) || 
-							(operations.get(operations.size() - 1).getParameter().equals(name) == false
-								&& type.equals("NameExpr")))) {
-	
-						if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-								&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")) {
-							field.append(name);
-							name = field.toString();
-						}
-						
-						if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id."))
-							operations.add(new Operation("", "\"" + name + "\""));
-						else if (type.equals("FieldAccessExpr"))
-							operations.add(new Operation("", field.toString()));
-						else
-							operations.add(new Operation("", name));
-					}
-				} catch (Exception e3) {
-					// TODO: handle exception
+	private static boolean isNotAnEspressoCommand(String name) {
+		String[] actions = { "click", "longClick", "doubleClick", "typeText", "replaceText", "clearText", "check",
+				"matches", "isDisplayed", "allOf" };
+
+		for (String a : actions) {
+			if (a.equals(name))
+				return false;
+		}
+
+		if (!ViewMatchers.getSearchType(name).equals(""))
+			return false;
+		return true;
+	}
+
+	private static void methodParameters(JSONArray a, StringBuffer field, int j) {
+		try {
+			String value = a.getJSONObject(j).getString("value");
+			if (j == 0)
+				operations.add(new Operation("", "\"" + value + "\""));
+			else {
+				String oldParam = operations.get(operations.size() - 1).getParameter();
+				operations.get(operations.size() - 1).setParameter(oldParam.concat(value));
+			}
+			methodParameters(a, field, ++j);
+		} catch (JSONException e) {
+			try {
+				String type = a.getJSONObject(j).getString("type");
+				String name = a.getJSONObject(j).getJSONObject("name").getString("identifier");
+
+				Operation lastOp = null;
+				String oldParam = "";
+
+				if (operations.size() > 0) {
+					lastOp = operations.get(operations.size() - 1);
+					oldParam = lastOp.getParameter();
 				}
 
+				// if it's a field and does not start with R.id. then adds the last missing part
+				// to the string and overrides the parameter
+				if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
+						&& !field.toString().startsWith("ViewMatchers.")
+						&& !field.toString().startsWith("ViewActions.")) {
+					field.append(name);
+					name = field.toString();
+				}
+
+				// saves the parameters and if is not an Espresso command concatenates them
+				if (operations.size() == 0
+						|| ((operations.get(operations.size() - 1).getParameter().equals("\"" + name + "\"") == false
+								&& type.equals("FieldAccessExpr"))
+								|| (operations.get(operations.size() - 1).getParameter().equals(name) == false
+										&& type.equals("NameExpr")))) {
+
+					if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id.")) {
+						if (j == 0)
+							operations.add(new Operation("", "\"" + name + "\""));
+						else
+							lastOp.setParameter(lastOp.getParameter().concat(", " + "\"" + name + "\""));
+					} else if (type.equals("FieldAccessExpr")) {
+						if (j == 0)
+							operations.add(new Operation("", field.toString()));
+						else
+							lastOp.setParameter(lastOp.getParameter().concat(", " + field.toString()));
+					} else {
+						if (j == 0)
+							operations.add(new Operation("", name));
+						else
+							lastOp.setParameter(oldParam.concat(", " + name));
+					}
+				}
+				methodParameters(a, field, ++j);
+			} catch (JSONException e1) {
+				// TODO: handle exception
 			}
 		}
 	}

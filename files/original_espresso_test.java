@@ -102,7 +102,9 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
 
-        onView(allOf(withText(var), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER_NAME), typeText("sisi"));
+        onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
+
+        onView(withContentDescription(obj.drawerDesc("text", variable2))).perform(click());
 
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 
@@ -115,9 +117,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         String drawerDesc = "drawer open";
         onView(withContentDescription(drawerDesc)).perform(click());
 
-        onView(withContentDescription(obj.drawerDesc)).perform(click());
-
-        onView(withText(THIRD_TEXT)).perform(longClick());
+        onView(withText(obj.THIRD_TEXT)).perform(longClick());
 
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
