@@ -102,20 +102,21 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
         Activity activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "text", var, "withContentDescription", "desc");
+        TOGGLETools.LogInteraction(now, "text", obj.array[j], "longClick");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
+        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
+        onView(withText(obj.array[j])).perform(longClick());
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
         now = new Date();
         activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "content-desc", obj.drawerDesc("text", variable2), "click");
+        TOGGLETools.LogInteraction(now, "content-desc", obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"), "withId", "something");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        onView(withContentDescription(obj.drawerDesc("text", variable2))).perform(click());
+        onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
         try {
             Thread.sleep(2000);
         } catch (Exception e) {

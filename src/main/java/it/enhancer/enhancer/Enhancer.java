@@ -25,6 +25,8 @@ public class Enhancer {
 	public static CompilationUnit cu;
 	public static List<Operation> operations;
 	public static boolean firstTest;
+	public static StringBuilder parameters;
+	public static StringBuilder field;
 
 	public static void main(String[] args) throws IOException {
 		FileInputStream in = new FileInputStream("files/original_espresso_test.java");
@@ -101,6 +103,8 @@ public class Enhancer {
 
 				NodeList<Statement> nodes = n.getStatements();
 				firstTest = true;
+				parameters = new StringBuilder("");
+				field = new StringBuilder("");
 
 				// scan each statement
 				int i = 0;
@@ -127,64 +131,81 @@ public class Enhancer {
 
 	public static void parseJsonArgument(JSONObject j, JSONArray a, int i) {
 		try {
-			StringBuffer field = new StringBuffer("");
 			if (a == null)
 				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
 			else {
 				parseJsonArgument(j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
-				parseScopeInArgument((JSONObject) a.get(0), field);
+				parseScopeInArgument((JSONObject) a.get(0));
 			}
 
 			// field is empty if the parameter is not a FieldAccessExpr otherwise contains
 			// only the first part ES: obj. or R.id.
-			methodOverloading(a, i, field);
+			methodOverloading(a, i);
 		} catch (JSONException e) {
 			// TODO: handle exception
 		}
 	}
 
-	private static void parseScopeInArgument(JSONObject j, StringBuffer field) {
+	private static void parseScopeInArgument(JSONObject j) {
 		try {
-			parseScopeInArgument(j = j.getJSONObject("scope"), field);
-			String name = j.getJSONObject("name").getString("identifier");
-			field.append(name + ".");
-		} catch (JSONException e) {
+			if (field.toString().isEmpty()) {
+				parseScopeInArgument(j = j.getJSONObject("scope"));
+				String type = j.getString("type");
+				String name = j.getJSONObject("name").getString("identifier");
 
+				if (!type.equals("MethodCallExpr"))
+					field.append(name + ".");
+				else
+					field.append(name + "(");
+
+				parseJsonArgument(j, null, 0);
+
+				if (type.equals("MethodCallExpr")) {
+					if (field.charAt(field.length() - 1) == ',')
+						field.deleteCharAt(field.length() - 1);
+					field.append(").");
+				}
+			}
+		} catch (JSONException e) {
+			try {
+				parseScopeInArgument(j.getJSONObject("name"));
+			} catch (JSONException e2) {
+				// TODO: handle exception
+			}
 		}
 	}
 
-	private static void methodOverloading(JSONArray a, int i, StringBuffer field) {
+	private static void methodOverloading(JSONArray a, int i) {
 		try {
-			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 			String type = a.getJSONObject(i).getString("type");
+			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 
 			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-					&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")) {
+					&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
+					&& isNotAnEspressoCommand(name)) {
 				String fd = field.toString();
 				name = fd.concat(name);
 			}
 
 			if (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)) {
-				if (operations.size() > 0 && !operations.get(operations.size() - 1).getParameter().isEmpty()) {
-					Operation lastOp = operations.get(operations.size() - 1);
-					String oldParam = lastOp.getParameter();
-
-					lastOp.setParameter(name + "(" + oldParam + ")");
-				} else
-					operations.add(new Operation("", name + "()"));
-			} else if (type.equals("MethodCallExpr")) {
-				if (operations.size() == 0 || operations.get(operations.size() - 1).getName() != "")
-					operations.add(new Operation(name, ""));
+				if (parameters.toString().isEmpty())
+					parameters.append(name + "()");
 				else
-					operations.get(operations.size() - 1).setName(name);
+					parameters = new StringBuilder(name + "(" + parameters.toString() + ")");
+				field = new StringBuilder("");
+
+			} else if (type.equals("MethodCallExpr") && !isNotAnEspressoCommand(name)) {
+				operations.add(new Operation(name, parameters.toString()));
+				parameters = new StringBuilder("");
+				field = new StringBuilder("");
 			}
 
 			parseJsonArgument(null, a, ++i);
-			methodOverloading(a, i, field);
+			methodOverloading(a, i);
 
 		} catch (JSONException e) {
 			// add parameters to the operation list
-			methodParameters(a, field, 0);
+			methodParameters(a, 0);
 		}
 	}
 
@@ -202,63 +223,98 @@ public class Enhancer {
 		return true;
 	}
 
-	private static void methodParameters(JSONArray a, StringBuffer field, int j) {
+	private static void methodParameters(JSONArray a, int j) {
 		try {
+			String type = a.getJSONObject(j).getString("type");
 			String value = a.getJSONObject(j).getString("value");
-			if (j == 0)
-				operations.add(new Operation("", "\"" + value + "\""));
-			else {
-				String oldParam = operations.get(operations.size() - 1).getParameter();
-				operations.get(operations.size() - 1).setParameter(oldParam.concat(value));
+
+			if (field.toString().isEmpty()) {
+				if (type.equals("StringLiteralExpr")) {
+					if (parameters.toString().isEmpty())
+						parameters.append("\"" + value + "\"");
+					else
+						parameters.append("," + "\"" + value + "\"");
+				} else {
+					if (parameters.toString().isEmpty())
+						parameters.append(value);
+					else
+						parameters.append("," + value);
+				}
+			} else {
+				if (type.equals("StringLiteralExpr"))
+					field.append("\"" + value + "\"" + ",");
+				else
+					field.append(value + ",");
 			}
-			methodParameters(a, field, ++j);
+
+			methodParameters(a, ++j);
 		} catch (JSONException e) {
 			try {
 				String type = a.getJSONObject(j).getString("type");
-				String name = a.getJSONObject(j).getJSONObject("name").getString("identifier");
+				String name = "";
+				String index = "";
 
-				Operation lastOp = null;
-				String oldParam = "";
+				if (type.equals("ArrayAccessExpr")) {
+					name = a.getJSONObject(j).getJSONObject("name").getJSONObject("name").getString("identifier");
+					if (a.getJSONObject(j).getJSONObject("index").getString("type").equals("NameExpr"))
+						index = a.getJSONObject(j).getJSONObject("index").getJSONObject("name").getString("identifier");
+					else
+						index = a.getJSONObject(j).getJSONObject("index").getString("value");
+				} else
+					name = a.getJSONObject(j).getJSONObject("name").getString("identifier");
 
-				if (operations.size() > 0) {
-					lastOp = operations.get(operations.size() - 1);
-					oldParam = lastOp.getParameter();
-				}
-
-				// if it's a field and does not start with R.id. then adds the last missing part
-				// to the string and overrides the parameter
 				if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-						&& !field.toString().startsWith("ViewMatchers.")
-						&& !field.toString().startsWith("ViewActions.")) {
-					field.append(name);
+						&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
+						&& isNotAnEspressoCommand(name)) {
+					field.append(name + ",");
 					name = field.toString();
 				}
 
-				// saves the parameters and if is not an Espresso command concatenates them
-				if (operations.size() == 0
-						|| ((operations.get(operations.size() - 1).getParameter().equals("\"" + name + "\"") == false
-								&& type.equals("FieldAccessExpr"))
-								|| (operations.get(operations.size() - 1).getParameter().equals(name) == false
-										&& type.equals("NameExpr")))) {
+				if (!type.equals("MethodCallExpr") || (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)
+						&& !parameters.toString().contains(name + "("))) {
 
+					// field access
 					if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id.")) {
-						if (j == 0)
-							operations.add(new Operation("", "\"" + name + "\""));
+						if (parameters.toString().isEmpty())
+							parameters.append("\"" + name + "\"");
 						else
-							lastOp.setParameter(lastOp.getParameter().concat(", " + "\"" + name + "\""));
+							parameters.append("," + "\"" + name + "\"");
+
+						field = new StringBuilder("");
+
+						// field access
 					} else if (type.equals("FieldAccessExpr")) {
-						if (j == 0)
-							operations.add(new Operation("", field.toString()));
+						if (parameters.toString().isEmpty())
+							parameters.append(name.substring(0, name.length() - 1));
 						else
-							lastOp.setParameter(lastOp.getParameter().concat(", " + field.toString()));
+							parameters.append("," + name.substring(0, name.length() - 1));
+
+						// array access
+					} else if (type.equals("ArrayAccessExpr")) {
+						if (name.charAt(name.length() - 1) != ',') {
+
+							if (parameters.toString().isEmpty())
+								parameters.append(name + "[" + index + "]");
+							else
+								parameters.append("," + name + "[" + index + "]");
+						} else {
+							if (parameters.toString().isEmpty())
+								parameters.append(name.substring(0, name.length() - 1) + "[" + index + "]");
+							else
+								parameters.append("," + name.substring(0, name.length() - 1) + "[" + index + "]");
+						}
+
+						// name expr
 					} else {
-						if (j == 0)
-							operations.add(new Operation("", name));
-						else
-							lastOp.setParameter(oldParam.concat(", " + name));
+						if (field.toString().isEmpty()) {
+							if (parameters.toString().isEmpty())
+								parameters.append(name);
+							else
+								parameters.append("," + name);
+						}
 					}
 				}
-				methodParameters(a, field, ++j);
+				methodParameters(a, ++j);
 			} catch (JSONException e1) {
 				// TODO: handle exception
 			}
