@@ -102,30 +102,10 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
         Activity activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "text", obj.array[j], "longClick");
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
-        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
-        onView(withText(obj.array[j])).perform(longClick());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
-        now = new Date();
-        activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "content-desc", obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"), "withId", "something");
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
-        onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
-        now = new Date();
-        activity = getActivityInstance();
         TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longClick");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
+        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
             Thread.sleep(2000);
@@ -136,6 +116,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         TOGGLETools.LogInteraction(now, "id", "detail_title", "typeText", "TextToBeReplaced");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
+        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
         try {
             Thread.sleep(2000);
@@ -143,11 +124,23 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        int textToBeReplacedLength31 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength31) + ";" + "Replacement");
+        int textToBeReplacedLength17 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength17) + ";" + "Replacement");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
+        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activity = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
+        onView(withContentDescription("drawer open")).perform(click());
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
@@ -162,91 +155,48 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
-        String drawerDesc = "drawer open";
-        now = new Date();
-        activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "content-desc", drawerDesc, "click");
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
-        onView(withContentDescription(drawerDesc)).perform(click());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
-        now = new Date();
-        activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "text", obj.THIRD_TEXT, "longClick");
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
-        onView(withText(obj.THIRD_TEXT)).perform(longClick());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
         now = new Date();
         activity = getActivityInstance();
         TOGGLETools.LogInteraction(now, "id", "settings_view", "check");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
+        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
-        now = new Date();
-        activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "email", "typeText", "abc");
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
+    // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
+    /*onView(withText(obj.array[j])).perform(longClick());
+
+        onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
+
+        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
+
+        onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
+
+        onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
+
+        onView(withContentDescription("drawer open")).perform(click());
+
+        String drawerDesc = "drawer open";
+        onView(withContentDescription(drawerDesc)).perform(click());
+
+        onView(withText(obj.THIRD_TEXT)).perform(longClick());
+
+        onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
+
         onView(withId(R.id.email)).perform(typeText("abc"));
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
+
         String number = "123456";
-        now = new Date();
-        activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "editBatchCode", "typeText", number);
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.editBatchCode)).perform(typeText(number));
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
+
         String replacement = "Replacement";
-        now = new Date();
-        activity = getActivityInstance();
-        int textToBeReplacedLength84 = ((TextView) activity.findViewById(R.id.name_field)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "name_field", "replaceText", String.valueOf(textToBeReplacedLength84) + ";" + replacement);
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.name_field)).perform(replaceText(replacement));
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
-        now = new Date();
-        activity = getActivityInstance();
-        int textToBeClearedLength92 = ((TextView) activity.findViewById(R.id.cardHolderNameEditText)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "cardHolderNameEditText", "clearText", String.valueOf(textToBeClearedLength92));
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
+
         onView(withId(R.id.cardHolderNameEditText)).perform(clearText());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
-        now = new Date();
-        activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "map", "doubleClick");
-        TOGGLETools.TakeScreenCapture(now, activity);
-        TOGGLETools.DumpScreen(now, device);
-        onView(withId(R.id.map)).perform(doubleClick());
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-        }
+
+        onView(withId(R.id.map)).perform(doubleClick());*/
     }
 
     // for clicking exact coordinates (identify a parent view, then perform clickXY

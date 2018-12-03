@@ -99,12 +99,16 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     @Test
     public void testTest() {
 
-        Instrumentation instr = InstrumentationRegistry.getInstrumentation();
-        UiDevice device = UiDevice.getInstance(instr);
-
         //onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
 
-        onView(withText(obj.array[j])).perform(longClick());
+        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
+        onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
+        onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
+        onView(withContentDescription("drawer open")).perform(click());
+        onView(withContentDescription("drawer open")).perform(click());
+        onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
+
+        /*onView(withText(obj.array[j])).perform(longClick());
 
         onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
 
@@ -133,7 +137,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
 
         onView(withId(R.id.cardHolderNameEditText)).perform(clearText());
 
-        onView(withId(R.id.map)).perform(doubleClick());
+        onView(withId(R.id.map)).perform(doubleClick());*/
 
     }
 

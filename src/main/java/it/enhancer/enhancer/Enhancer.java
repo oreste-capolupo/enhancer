@@ -355,6 +355,8 @@ public class Enhancer {
 	}
 
 	private static int enhanceMethod(BlockStmt b, Statement s, int i) {
+		Statement instrumentation = JavaParser.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
+		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
 		Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
 		Statement date = JavaParser.parseStatement("now = new Date();");
 		Statement firstTestActivity = JavaParser.parseStatement("Activity activity = getActivityInstance();");
@@ -375,12 +377,15 @@ public class Enhancer {
 		if (!searchType.isEmpty() && !interactionType.isEmpty())
 			log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
-		Statement st = s;
-		b.remove(st);
+		String stmtString = s.toString();
+		Statement st = JavaParser.parseStatement(stmtString);
+		b.remove(s);
 
 		if (firstTest) {
 			firstTest = false;
-			b.addStatement(i, firstTestDate);
+			b.addStatement(i, instrumentation);
+			b.addStatement(++i, device);
+			b.addStatement(++i, firstTestDate);
 			b.addStatement(++i, firstTestActivity);
 		} else {
 			b.addStatement(i, date);
