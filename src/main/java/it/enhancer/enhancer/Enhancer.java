@@ -211,8 +211,7 @@ public class Enhancer {
 	}
 
 	private static boolean isNotAnEspressoCommand(String name) {
-		String[] genericCommands = { "click", "longClick", "doubleClick", "typeText", "replaceText", "clearText",
-				"check", "matches", "isDisplayed", "allOf" };
+		String[] genericCommands = { "matches", "isDisplayed", "allOf" };
 
 		if (!ViewMatchers.getSearchType(name).equals("") || !ViewActions.getSearchType(name).equals(""))
 			return false;
@@ -424,7 +423,7 @@ public class Enhancer {
 		// default handles the normal behavior of the parameters. ES: click(),
 		// typeText("TextToBeReplaced")
 		switch (interactionType) {
-		case "replaceText":
+		case "replacetext":
 			// the 'i' in the variable name is used to make it unique in case we have
 			// multiple interactions of the same type
 			// substring removes the " from the string
@@ -437,7 +436,7 @@ public class Enhancer {
 							+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
 							+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
 			break;
-		case "clearText":
+		case "cleartext":
 			stmt = "int textToBeClearedLength" + i + " = ((TextView) activity.findViewById(R.id."
 					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
 			b.addStatement(++i, JavaParser.parseStatement(stmt));

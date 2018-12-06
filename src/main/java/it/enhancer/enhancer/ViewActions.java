@@ -1,10 +1,10 @@
 package it.enhancer.enhancer;
 
 public enum ViewActions {
-	check("check"), clearText("cleartext"), click("click"), closeSoftKeyboard("closekeyboard"), doubleClick("doubleclick"), longClick("longclick"), pressBack("back"), 
+	check("check"), clearText("cleartext"), click("click"), closeSoftKeyboard("closekeyboard"), doubleClick("doubleclick"), longClick("longclick"), pressBack("pressback"), 
 	pressBackUnconditionally("backunconditionally"), pressImeActionButton("pressIme"), pressKey("presskey"), pressMenuKey("pressmenukey"), replaceText("replacetext"), 
-	scrollTo("scrollto"), swipeDown("swipedown"), swipeLeft("swipeLeft"), swipeRight("swiperight"), swipeUp("swipeup"), typeText("typetext"), 
-	typeTextIntoFocusedView("typetextintofocusedview");
+	scrollTo("scrollto"), swipeDown("swipedown"), swipeLeft("swipeleft"), swipeRight("swiperight"), swipeUp("swipeup"), typeText("typetext"), 
+	typeTextIntoFocusedView("typeintofocused");
 	
 	private String value;
 	
