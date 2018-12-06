@@ -211,16 +211,17 @@ public class Enhancer {
 	}
 
 	private static boolean isNotAnEspressoCommand(String name) {
-		String[] actions = { "click", "longClick", "doubleClick", "typeText", "replaceText", "clearText", "check",
-				"matches", "isDisplayed", "allOf" };
+		String[] genericCommands = { "click", "longClick", "doubleClick", "typeText", "replaceText", "clearText",
+				"check", "matches", "isDisplayed", "allOf" };
 
-		for (String a : actions) {
+		if (!ViewMatchers.getSearchType(name).equals("") || !ViewActions.getSearchType(name).equals(""))
+			return false;
+
+		for (String a : genericCommands) {
 			if (a.equals(name))
 				return false;
 		}
 
-		if (!ViewMatchers.getSearchType(name).equals(""))
-			return false;
 		return true;
 	}
 
@@ -356,7 +357,8 @@ public class Enhancer {
 	}
 
 	private static int enhanceMethod(BlockStmt b, Statement s, int i) {
-		Statement instrumentation = JavaParser.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
+		Statement instrumentation = JavaParser
+				.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
 		Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
 		Statement date = JavaParser.parseStatement("now = new Date();");
@@ -367,32 +369,55 @@ public class Enhancer {
 		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(2000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
 
-		LogCat log = null;
-
-		// this works only on test cases with one matcher and one action
+		// this works on test cases with one matcher
 		String searchType = ViewMatchers.getSearchType(operations.get(0).getName());
 		String searchKw = operations.get(0).getParameter();
-		String interactionType = operations.get(1).getName();
-		String interactionParams = operations.get(1).getParameter();
-
-		if (!searchType.isEmpty() && !interactionType.isEmpty())
-			log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
 		String stmtString = s.toString();
 		Statement st = JavaParser.parseStatement(stmtString);
+
 		b.remove(s);
 
-		if (firstTest) {
-			firstTest = false;
-			b.addStatement(i, instrumentation);
-			b.addStatement(++i, device);
-			b.addStatement(++i, firstTestDate);
-			b.addStatement(++i, firstTestActivity);
-		} else {
-			b.addStatement(i, date);
-			b.addStatement(++i, activity);
+		for (int j = 1; j < operations.size(); j++) {
+			String interactionType = ViewActions.getSearchType(operations.get(j).getName());
+			String interactionParams = operations.get(j).getParameter();
+			
+			LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
+
+			if (firstTest) {
+				firstTest = false;
+				b.addStatement(i, instrumentation);
+				b.addStatement(++i, device);
+				b.addStatement(++i, firstTestDate);
+				b.addStatement(++i, firstTestActivity);
+			} else if (j == 1) {
+				b.addStatement(i, date);
+				b.addStatement(++i, activity);
+
+				// this makes it work on test cases with multiple interactions avoiding the try
+				// statements to stay on the bottom
+			} else {
+				b.addStatement(++i, date);
+				b.addStatement(++i, activity);
+			}
+
+			i = addInteractionToCu(interactionType, log, i, b);
+
+			b.addStatement(++i, screenCapture);
+			b.addStatement(++i, dumpScreen);
+			b.addStatement(++i, st);
+			b.addStatement(++i, tryStmt);
+			
+			// forcing break when finding checks
+			if (interactionType.equals("check")) {
+				break;
+			}
 		}
 
+		return ++i;
+	}
+
+	public static int addInteractionToCu(String interactionType, LogCat log, int i, BlockStmt b) {
 		Statement l = null;
 		String stmt = "";
 
@@ -404,7 +429,7 @@ public class Enhancer {
 			// multiple interactions of the same type
 			// substring removes the " from the string
 			stmt = "int textToBeReplacedLength" + i + " = ((TextView) activity.findViewById(R.id."
-					+ searchKw.substring(1, searchKw.length() - 1) + ")).getText().length();";
+					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
 			b.addStatement(++i, JavaParser.parseStatement(stmt));
 
 			l = JavaParser.parseStatement(
@@ -414,7 +439,7 @@ public class Enhancer {
 			break;
 		case "clearText":
 			stmt = "int textToBeClearedLength" + i + " = ((TextView) activity.findViewById(R.id."
-					+ searchKw.substring(1, searchKw.length() - 1) + ")).getText().length();";
+					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
 			b.addStatement(++i, JavaParser.parseStatement(stmt));
 
 			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
@@ -432,14 +457,10 @@ public class Enhancer {
 			break;
 		}
 
-		b.addStatement(++i, l);
+		if (l != null)
+			b.addStatement(++i, l);
 
-		b.addStatement(++i, screenCapture);
-		b.addStatement(++i, dumpScreen);
-		b.addStatement(++i, st);
-		b.addStatement(++i, tryStmt);
-
-		return ++i;
+		return i;
 	}
 
 }

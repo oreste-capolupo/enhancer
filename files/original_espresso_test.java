@@ -98,9 +98,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     }
     @Test
     public void testTest() {
-
-        //onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
-
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
@@ -108,11 +105,12 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withContentDescription("drawer open")).perform(click());
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
-        /*onView(withText(obj.array[j])).perform(longClick());
+        //onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
+        //onView(withText(obj.array[j])).perform(longClick());
 
-        onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
+        //onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
 
-        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
+        /*onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), doubleClick()).perform(click());
 
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
 
@@ -130,7 +128,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withId(R.id.email)).perform(typeText("abc"));
 
         String number = "123456";
-        onView(withId(R.id.editBatchCode)).perform(typeText(number));
+        onView(withId(R.id.editBatchCode)).perform(typeText(number), replaceText("replaced"));
 
         String replacement = "Replacement";
         onView(withId(R.id.name_field)).perform(replaceText(replacement));

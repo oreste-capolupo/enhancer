@@ -102,10 +102,9 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
         Activity activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longClick");
+        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
             Thread.sleep(2000);
@@ -113,10 +112,9 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "typeText", "TextToBeReplaced");
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "typetext", "TextToBeReplaced");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
         try {
             Thread.sleep(2000);
@@ -124,11 +122,9 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         }
         now = new Date();
         activity = getActivityInstance();
-        int textToBeReplacedLength17 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "replaceText", String.valueOf(textToBeReplacedLength17) + ";" + "Replacement");
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "replacetext", "Replacement");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
         try {
             Thread.sleep(2000);
@@ -139,7 +135,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withContentDescription("drawer open")).perform(click());
         try {
             Thread.sleep(2000);
@@ -160,18 +155,15 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         TOGGLETools.LogInteraction(now, "id", "settings_view", "check");
         TOGGLETools.TakeScreenCapture(now, activity);
         TOGGLETools.DumpScreen(now, device);
-        // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
         try {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
     // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
-    /*onView(withText(obj.array[j])).perform(longClick());
-
-        onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
-
-        onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
+    // onView(withText(obj.array[j])).perform(longClick());
+    // onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
+    /*onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), doubleClick()).perform(click());
 
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
 
@@ -189,7 +181,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withId(R.id.email)).perform(typeText("abc"));
 
         String number = "123456";
-        onView(withId(R.id.editBatchCode)).perform(typeText(number));
+        onView(withId(R.id.editBatchCode)).perform(typeText(number), replaceText("replaced"));
 
         String replacement = "Replacement";
         onView(withId(R.id.name_field)).perform(replaceText(replacement));

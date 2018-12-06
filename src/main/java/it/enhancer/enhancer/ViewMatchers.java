@@ -1,7 +1,7 @@
 package it.enhancer.enhancer;
 
 public enum ViewMatchers {
-	withId("id"), withText("text"), withContentDescription("content-desc");
+	withContentDescription("content-desc"), withId("id"), withText("text");
 	
 	private String value;
 	
@@ -19,6 +19,27 @@ public enum ViewMatchers {
 		for (Object o : vm)
 			if(((ViewMatchers)o).name().equals(matcher))
 				return ((ViewMatchers) o).getValue();
-		return "";
+		
+//		int min = 0;
+//        int max = vm.length  - 1;
+//        int i;
+//        do {
+//            i = (min + max) / 2;
+//            String val = ((ViewMatchers) vm[i]).name();
+//            if (matcher.compareTo(val) < 0) {
+//                max = i;
+//            } else if (matcher.compareTo(val) > 0) {
+//                if (i + 1 < vm.length && matcher.compareTo(((ViewMatchers) vm[i + 1]).getValue()) < 0) {
+//                    break;
+//                }
+//                min = i + 1;
+//            }
+//        } while (!matcher.equals(((ViewMatchers)vm[i]).name()) && min < max);
+//        if (min == max) {
+//            return ((ViewMatchers)vm[max]).getValue();
+//        }
+//        return ((ViewMatchers)vm[i]).getValue();
+        
+      return "";
 	}
 }
