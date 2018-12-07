@@ -14,6 +14,7 @@ import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.visitor.*;
@@ -93,16 +94,16 @@ public class Enhancer {
 
 	private static class MethodVisitor extends ModifierVisitor<Void> {
 		@Override
-		public BlockStmt visit(BlockStmt n, Void arg) {
+		public BlockStmt visit(BlockStmt b, Void arg) {
 			/*
 			 * here you can access the attributes of the method. this method will be called
 			 * for all methods in this CompilationUnit, including inner class methods
 			 */
-			super.visit(n, arg);
-			String body = n.toString();
+			super.visit(b, arg);
+			String body = b.toString();
 			if (body.contains("onView") || body.contains("onData")) {
 
-				NodeList<Statement> nodes = n.getStatements();
+				NodeList<Statement> nodes = b.getStatements();
 				firstTest = true;
 				parameters = new StringBuilder("");
 				field = new StringBuilder("");
@@ -111,9 +112,12 @@ public class Enhancer {
 				int i = 0;
 				while (i < nodes.size())
 					// gets the new index because the method has been enhanced
-					i = parseStatement(n, nodes.get(i), i);
+					i = parseStatement(b, nodes.get(i), i);
+				
+				// add fullcheck at the bottom of the method
+				//addFullCheck(b, i);
 			}
-			return n;
+			return b;
 		}
 
 	}
@@ -445,6 +449,24 @@ public class Enhancer {
 					+ log.getSearchKw() + "," + "\"" + log.getInteractionType()
 					+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 			break;
+		case "presskey":
+			Statement val = JavaParser.parseStatement("String espressoKeyVal"+i+" = String.valueOf("+ log.getInteractionParams() +");");
+			Statement keyArray = JavaParser.parseStatement("String[] espressoKeyArray"+i+" = espressoKeyVal"+i+".split(\",\");");
+			IfStmt ifStmt = (IfStmt) JavaParser.parseStatement("if(espressoKeyArray"+i+".length > 1) {\n" + 
+														"            int espressoKeyArrayIndex"+i+" = espressoKeyArray"+i+"[0].indexOf(\":\");\n" + 
+														"            espressoKeyVal"+i+" = espressoKeyArray"+i+"[0].substring(espressoKeyArrayIndex"+i+"+1).trim();\n" + 
+														"        }");
+			
+			b.addStatement(++i, val);
+			b.addStatement(++i, keyArray);
+			b.addStatement(++i, ifStmt);
+			
+			stmt = "TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+					+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ", espressoKeyVal"+(i-3)+");";
+			
+			l = JavaParser.parseStatement(stmt);
+			
+			break;
 		default:
 			if (log.getInteractionParams().isEmpty())
 				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
@@ -461,5 +483,21 @@ public class Enhancer {
 
 		return i;
 	}
+	
+	/*public static void addFullCheck(BlockStmt b, int i) {
+		Statement date = JavaParser.parseStatement("now = new Date();");
+		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
+		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
+		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
+		
+		String stmt = "TOGGLETools.LogInteraction(now, \"\", \"\", \"fullcheck\");";
+		Statement log = JavaParser.parseStatement(stmt);
+				
+		b.addStatement(i, date);
+		b.addStatement(++i, activity);
+		b.addStatement(++i, log);
+		b.addStatement(++i, screenCapture);
+		b.addStatement(++i, dumpScreen);
+	}*/
 
 }

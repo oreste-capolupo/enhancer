@@ -105,6 +105,8 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withContentDescription("drawer open")).perform(click());
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
+        onView(withId(R.id.recipient_list)).perform(ViewActions.pressKey(KeyEvent.KEYCODE_0));
+
         //onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         //onView(withText(obj.array[j])).perform(longClick());
 

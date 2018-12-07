@@ -161,6 +161,22 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
             Thread.sleep(2000);
         } catch (Exception e) {
         }
+        now = new Date();
+        activity = getActivityInstance();
+        String espressoKeyVal46 = String.valueOf(KeyEvent.KEYCODE_0);
+        String[] espressoKeyArray46 = espressoKeyVal46.split(",");
+        if (espressoKeyArray46.length > 1) {
+            int espressoKeyArrayIndex46 = espressoKeyArray46[0].indexOf(":");
+            espressoKeyVal46 = espressoKeyArray46[0].substring(espressoKeyArrayIndex46 + 1).trim();
+        }
+        TOGGLETools.LogInteraction(now, "id", "recipient_list", "presskey", espressoKeyVal46);
+        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.recipient_list)).perform(ViewActions.pressKey(KeyEvent.KEYCODE_0));
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+        }
     // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
     // onView(withText(obj.array[j])).perform(longClick());
     // onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
