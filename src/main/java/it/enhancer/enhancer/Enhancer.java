@@ -127,7 +127,8 @@ public class Enhancer {
 			parseJsonScope(j = j.getJSONObject("scope"));
 			// gets onView or onData and all nested performs and checks but the last one
 			// System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
-			if (!j.getJSONObject("name").getString("identifier").equals("onView") && !j.getJSONObject("name").getString("identifier").equals("onData"))
+			if (!j.getJSONObject("name").getString("identifier").equals("onView")
+					&& !j.getJSONObject("name").getString("identifier").equals("onData"))
 				operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
@@ -158,9 +159,21 @@ public class Enhancer {
 			if (field.toString().isEmpty()) {
 				parseScopeInArgument(j = j.getJSONObject("scope"));
 				String type = j.getString("type");
-				String name = j.getJSONObject("name").getString("identifier");
+				String name = "";
+				String index = "";
 
-				if (!type.equals("MethodCallExpr"))
+				if (type.equals("ArrayAccessExpr")) {
+					name = j.getJSONObject("name").getJSONObject("name").getString("identifier");
+					if (j.getJSONObject("index").getString("type").equals("NameExpr"))
+						index = j.getJSONObject("index").getJSONObject("name").getString("identifier");
+					else
+						index = j.getJSONObject("index").getString("value");
+				} else
+					name = j.getJSONObject("name").getString("identifier");
+
+				if (!type.equals("MethodCallExpr") && type.equals("ArrayAccessExpr"))
+					field.append(name + "[" + index + "].");
+				else if (!type.equals("MethodCallExpr"))
 					field.append(name + ".");
 				else
 					field.append(name + "(");

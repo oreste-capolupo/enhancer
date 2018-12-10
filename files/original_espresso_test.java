@@ -105,13 +105,15 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         onView(withContentDescription("drawer open")).perform(click());
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
 
+        //onView(withId(android.support.design.R.id.search_src_text)).perform(typeText("Uni"), pressKey(KeyEvent.KEYCODE_ENTER));
+
         //onView(withId(R.id.fab_expand_menu_button)).perform(longClick()).check(matches(isDisplayed())).perform(longClick());
         //onView(withId(R.id.settings_view)).check(matches(isDisplayed())).perform(longClick()).check(matches(isDisplayed()));
 
         //onView(withId(R.id.recipient_list)).perform(ViewActions.pressKey(KeyEvent.KEYCODE_0));
 
         //onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
-        //onView(withText(obj.array[j])).perform(longClick());
+        onView(withText(array[j].getName())).perform(longClick());
 
         //onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
 
