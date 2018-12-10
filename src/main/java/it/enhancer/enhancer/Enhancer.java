@@ -113,9 +113,9 @@ public class Enhancer {
 				while (i < nodes.size())
 					// gets the new index because the method has been enhanced
 					i = parseStatement(b, nodes.get(i), i);
-				
+
 				// add fullcheck at the bottom of the method
-				//addFullCheck(b, i);
+				addFullCheck(b, i);
 			}
 			return b;
 		}
@@ -127,6 +127,8 @@ public class Enhancer {
 			parseJsonScope(j = j.getJSONObject("scope"));
 			// gets onView or onData and all nested performs and checks but the last one
 			// System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
+			if (!j.getJSONObject("name").getString("identifier").equals("onView") && !j.getJSONObject("name").getString("identifier").equals("onData"))
+				operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
 			// TODO: handle exception
@@ -342,8 +344,8 @@ public class Enhancer {
 				parseJsonScope(j);
 				// gets the last check or perform
 				// System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
-				if (j.getJSONObject("name").getString("identifier").equals("check"))
-					operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
+				// if (j.getJSONObject("name").getString("identifier").equals("check"))
+				operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
 
 				parseJsonArgument(j, null, 0);
 
@@ -381,39 +383,45 @@ public class Enhancer {
 
 		b.remove(s);
 
+		boolean skipTest = false;
+
 		for (int j = 1; j < operations.size(); j++) {
 			String interactionType = ViewActions.getSearchType(operations.get(j).getName());
 			String interactionParams = operations.get(j).getParameter();
-			
-			LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
-			if (firstTest) {
-				firstTest = false;
-				b.addStatement(i, instrumentation);
-				b.addStatement(++i, device);
-				b.addStatement(++i, firstTestDate);
-				b.addStatement(++i, firstTestActivity);
-			} else if (j == 1) {
-				b.addStatement(i, date);
-				b.addStatement(++i, activity);
+			if (!interactionType.equals("perform") && skipTest == false) {
+				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
-				// this makes it work on test cases with multiple interactions avoiding the try
-				// statements to stay on the bottom
-			} else {
-				b.addStatement(++i, date);
-				b.addStatement(++i, activity);
+				if (firstTest) {
+					firstTest = false;
+					b.addStatement(i, instrumentation);
+					b.addStatement(++i, device);
+					b.addStatement(++i, firstTestDate);
+					b.addStatement(++i, firstTestActivity);
+				} else if (j == 1 && interactionType.equals("check") || j == 2) {
+					b.addStatement(i, date);
+					b.addStatement(++i, activity);
+
+					// this makes it work on test cases with multiple interactions avoiding the try
+					// statements to stay on the bottom
+				} else {
+					b.addStatement(++i, date);
+					b.addStatement(++i, activity);
+				}
+
+				i = addInteractionToCu(interactionType, log, i, b);
+
+				b.addStatement(++i, screenCapture);
+				b.addStatement(++i, dumpScreen);
+				b.addStatement(++i, st);
+				b.addStatement(++i, tryStmt);
+			} else if (interactionType.equals("perform")) {
+				skipTest = false;
 			}
 
-			i = addInteractionToCu(interactionType, log, i, b);
-
-			b.addStatement(++i, screenCapture);
-			b.addStatement(++i, dumpScreen);
-			b.addStatement(++i, st);
-			b.addStatement(++i, tryStmt);
-			
-			// forcing break when finding checks
+			// skipping when finding checks
 			if (interactionType.equals("check")) {
-				break;
+				skipTest = true;
 			}
 		}
 
@@ -450,22 +458,24 @@ public class Enhancer {
 					+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 			break;
 		case "presskey":
-			Statement val = JavaParser.parseStatement("String espressoKeyVal"+i+" = String.valueOf("+ log.getInteractionParams() +");");
-			Statement keyArray = JavaParser.parseStatement("String[] espressoKeyArray"+i+" = espressoKeyVal"+i+".split(\",\");");
-			IfStmt ifStmt = (IfStmt) JavaParser.parseStatement("if(espressoKeyArray"+i+".length > 1) {\n" + 
-														"            int espressoKeyArrayIndex"+i+" = espressoKeyArray"+i+"[0].indexOf(\":\");\n" + 
-														"            espressoKeyVal"+i+" = espressoKeyArray"+i+"[0].substring(espressoKeyArrayIndex"+i+"+1).trim();\n" + 
-														"        }");
-			
+			Statement val = JavaParser.parseStatement(
+					"String espressoKeyVal" + i + " = String.valueOf(" + log.getInteractionParams() + ");");
+			Statement keyArray = JavaParser
+					.parseStatement("String[] espressoKeyArray" + i + " = espressoKeyVal" + i + ".split(\",\");");
+			IfStmt ifStmt = (IfStmt) JavaParser.parseStatement("if(espressoKeyArray" + i + ".length > 1) {\n"
+					+ "            int espressoKeyArrayIndex" + i + " = espressoKeyArray" + i + "[0].indexOf(\":\");\n"
+					+ "            espressoKeyVal" + i + " = espressoKeyArray" + i
+					+ "[0].substring(espressoKeyArrayIndex" + i + "+1).trim();\n" + "        }");
+
 			b.addStatement(++i, val);
 			b.addStatement(++i, keyArray);
 			b.addStatement(++i, ifStmt);
-			
-			stmt = "TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
-					+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ", espressoKeyVal"+(i-3)+");";
-			
+
+			stmt = "TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+					+ "," + "\"" + log.getInteractionType() + "\"" + ", espressoKeyVal" + (i - 3) + ");";
+
 			l = JavaParser.parseStatement(stmt);
-			
+
 			break;
 		default:
 			if (log.getInteractionParams().isEmpty())
@@ -483,21 +493,21 @@ public class Enhancer {
 
 		return i;
 	}
-	
-	/*public static void addFullCheck(BlockStmt b, int i) {
+
+	public static void addFullCheck(BlockStmt b, int i) {
 		Statement date = JavaParser.parseStatement("now = new Date();");
 		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
 		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
-		
+
 		String stmt = "TOGGLETools.LogInteraction(now, \"\", \"\", \"fullcheck\");";
 		Statement log = JavaParser.parseStatement(stmt);
-				
+
 		b.addStatement(i, date);
 		b.addStatement(++i, activity);
 		b.addStatement(++i, log);
 		b.addStatement(++i, screenCapture);
 		b.addStatement(++i, dumpScreen);
-	}*/
+	}
 
 }
