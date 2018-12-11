@@ -97,8 +97,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
 
     private Activity currentActivity;
 
-    private Activity currentActivity;
-
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class, false, false);
 
@@ -445,19 +443,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
                 return parent instanceof ViewGroup && parentMatcher.matches(parent) && view.equals(((ViewGroup) parent).getChildAt(position));
             }
         };
-    }
-
-    public Activity getActivityInstance() {
-        getInstrumentation().runOnMainSync(new Runnable() {
-
-            public void run() {
-                Collection resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(RESUMED);
-                if (resumedActivities.iterator().hasNext()) {
-                    currentActivity = (Activity) resumedActivities.iterator().next();
-                }
-            }
-        });
-        return currentActivity;
     }
 
     public Activity getActivityInstance() {

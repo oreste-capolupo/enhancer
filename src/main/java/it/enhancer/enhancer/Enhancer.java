@@ -52,8 +52,10 @@ public class Enhancer {
 	private static void addPrivateField() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 
-		BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
-		ci.getMembers().add(0, field);
+		if (isNotInMembersList(ci, "currentActivity")) {
+			BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
+			ci.getMembers().add(0, field);
+		}
 	}
 
 	private static void addImportsInCompilationUnit() {
@@ -72,25 +74,41 @@ public class Enhancer {
 
 	private static void addActivityInstanceMethod() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
-		MethodDeclaration md = new MethodDeclaration();
 
-		String body = "{" + "getInstrumentation().runOnMainSync(new Runnable() {\n"
-				+ "            public void run() {\n"
-				+ "                Collection resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(RESUMED);\n"
-				+ "                if (resumedActivities.iterator().hasNext()){\n"
-				+ "                    currentActivity = (Activity) resumedActivities.iterator().next();\n"
-				+ "                }\n" + "            }\n" + "        });\n" + "\n" + "        return currentActivity;"
-				+ "}";
+		if (isNotInMembersList(ci, "getActivityInstance")) {
+			MethodDeclaration md = new MethodDeclaration();
 
-		md.setName("getActivityInstance");
-		md.setPublic(true);
-		md.setType("Activity");
-		BlockStmt b = JavaParser.parseBlock(body);
-		md.setBody(b);
+			String body = "{" + "getInstrumentation().runOnMainSync(new Runnable() {\n"
+					+ "            public void run() {\n"
+					+ "                Collection resumedActivities = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(RESUMED);\n"
+					+ "                if (resumedActivities.iterator().hasNext()){\n"
+					+ "                    currentActivity = (Activity) resumedActivities.iterator().next();\n"
+					+ "                }\n" + "            }\n" + "        });\n" + "\n"
+					+ "        return currentActivity;" + "}";
 
-		// adds the method at the bottom of the class. The private field
-		// "currentActivity" is included in the members
-		ci.getMembers().add(ci.getMembers().size(), md);
+			md.setName("getActivityInstance");
+			md.setPublic(true);
+			md.setType("Activity");
+			BlockStmt b = JavaParser.parseBlock(body);
+			md.setBody(b);
+
+			// adds the method at the bottom of the class. The private field
+			// "currentActivity" is included in the members
+			ci.getMembers().add(ci.getMembers().size(), md);
+		}
+	}
+
+	private static boolean isNotInMembersList(ClassOrInterfaceDeclaration ci, String member) {
+		NodeList<BodyDeclaration<?>> members = ci.getMembers();
+
+		for (BodyDeclaration<?> bd : members) {
+			if ((bd.isFieldDeclaration() && bd.getChildNodes().get(0).toString().equals(member))
+					|| (bd instanceof MethodDeclaration
+							&& ((MethodDeclaration) bd).getName().getIdentifier().equals(member)))
+				return false;
+		}
+
+		return true;
 	}
 
 	private static class MethodVisitor extends ModifierVisitor<Void> {
@@ -403,10 +421,11 @@ public class Enhancer {
 			String interactionType = ViewActions.getSearchType(operations.get(j).getName());
 			String interactionParams = operations.get(j).getParameter();
 
-			/*if (interactionType.isEmpty()) {
-				new Exception(operations.get(j).getName() + " is not supported or is not an Espresso command").printStackTrace();
-			}*/
-			
+			/*
+			 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
+			 * " is not supported or is not an Espresso command").printStackTrace(); }
+			 */
+
 			if (!interactionType.equals("perform") && skipTest == false) {
 				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
@@ -520,7 +539,7 @@ public class Enhancer {
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
 		Statement currDisp = JavaParser.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activity);");
-		
+
 		String stmt = "TOGGLETools.LogInteraction(now, \"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
 		Statement log = JavaParser.parseStatement(stmt);
 
