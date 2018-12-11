@@ -30,7 +30,7 @@ public class Enhancer {
 	public static StringBuilder field;
 
 	public static void main(String[] args) throws IOException {
-		FileInputStream in = new FileInputStream("files/original_espresso_test.java");
+		FileInputStream in = new FileInputStream("files/baseespressotest.java");
 		cu = JavaParser.parse(in);
 
 		addImportsInCompilationUnit();
@@ -67,6 +67,7 @@ public class Enhancer {
 		cu.addImport("android.widget.TextView", false, false);
 		cu.addImport("android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
 		cu.addImport("android.support.test.uiautomator.UiDevice", false, false);
+		cu.addImport("android.graphics.Rect", false, false);
 	}
 
 	private static void addActivityInstanceMethod() {
@@ -402,6 +403,10 @@ public class Enhancer {
 			String interactionType = ViewActions.getSearchType(operations.get(j).getName());
 			String interactionParams = operations.get(j).getParameter();
 
+			/*if (interactionType.isEmpty()) {
+				new Exception(operations.get(j).getName() + " is not supported or is not an Espresso command").printStackTrace();
+			}*/
+			
 			if (!interactionType.equals("perform") && skipTest == false) {
 				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
@@ -416,7 +421,7 @@ public class Enhancer {
 					b.addStatement(++i, activity);
 
 					// this makes it work on test cases with multiple interactions avoiding the try
-					// statements to stay on the bottom
+					// statements to stay to the bottom
 				} else {
 					b.addStatement(++i, date);
 					b.addStatement(++i, activity);
@@ -436,6 +441,7 @@ public class Enhancer {
 			if (interactionType.equals("check")) {
 				skipTest = true;
 			}
+
 		}
 
 		return ++i;
@@ -513,11 +519,14 @@ public class Enhancer {
 		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
-		String stmt = "TOGGLETools.LogInteraction(now, \"\", \"\", \"fullcheck\");";
+		Statement currDisp = JavaParser.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activity);");
+		
+		String stmt = "TOGGLETools.LogInteraction(now, \"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
 		Statement log = JavaParser.parseStatement(stmt);
 
 		b.addStatement(i, date);
 		b.addStatement(++i, activity);
+		b.addStatement(++i, currDisp);
 		b.addStatement(++i, log);
 		b.addStatement(++i, screenCapture);
 		b.addStatement(++i, dumpScreen);
