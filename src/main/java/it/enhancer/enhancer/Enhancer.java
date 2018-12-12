@@ -233,8 +233,12 @@ public class Enhancer {
 					parameters = new StringBuilder(name + "(" + parameters.toString() + ")");
 				field = new StringBuilder("");
 
-			} else if (type.equals("MethodCallExpr") && !isNotAnEspressoCommand(name)) {
-				operations.add(new Operation(name, parameters.toString()));
+			} else if (type.equals("MethodCallExpr")) {
+				// if the command is an assertion then "order" the list
+				if (!ViewAssertions.getSearchType(name).equals("")) 
+					operations.add(operations.size()-1, new Operation(name, parameters.toString()));
+				else 
+					operations.add(new Operation(name, parameters.toString()));
 				parameters = new StringBuilder("");
 				field = new StringBuilder("");
 			}
@@ -415,18 +419,28 @@ public class Enhancer {
 
 		b.remove(s);
 
-		boolean skipTest = false;
-
 		for (int j = 1; j < operations.size(); j++) {
 			String interactionType = ViewActions.getSearchType(operations.get(j).getName());
 			String interactionParams = operations.get(j).getParameter();
-
 			/*
 			 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
 			 * " is not supported or is not an Espresso command").printStackTrace(); }
 			 */
-
-			if (!interactionType.equals("perform") && skipTest == false) {
+			
+			if (!interactionType.equals("perform") && !interactionType.equals("check")) {
+				
+				if (interactionType.isEmpty()) {
+					interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
+					
+					if (!interactionType.isEmpty() && canItBeAnAssertionParameter(operations.get(++j)))
+						interactionType = "check";
+					else {
+						b.addStatement(i, st);
+						break;
+					}
+						
+				}
+				
 				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
 				if (firstTest) {
@@ -435,7 +449,7 @@ public class Enhancer {
 					b.addStatement(++i, device);
 					b.addStatement(++i, firstTestDate);
 					b.addStatement(++i, firstTestActivity);
-				} else if (j == 1 && interactionType.equals("check") || j == 2) {
+				} else if (j == 3 && interactionType.equals("check") || j == 2) {
 					b.addStatement(i, date);
 					b.addStatement(++i, activity);
 
@@ -452,18 +466,22 @@ public class Enhancer {
 				b.addStatement(++i, dumpScreen);
 				b.addStatement(++i, st);
 				b.addStatement(++i, tryStmt);
-			} else if (interactionType.equals("perform")) {
-				skipTest = false;
-			}
-
-			// skipping when finding checks
-			if (interactionType.equals("check")) {
-				skipTest = true;
 			}
 
 		}
 
 		return ++i;
+	}
+
+	private static boolean canItBeAnAssertionParameter(Operation operation) {
+		String[] assertionParameters = {"isDisplayed","isCompletelyDisplayed","isEnabled","hasFocus","isClickable","isChecked", "isNotChecked", "withEffectiveVisibility","isSelected", "withSpinnerText", "hasEllipsizedText", "withText"};
+		
+		for (String par : assertionParameters) {
+			if (par.equals(operation.getName()))
+				return true;
+		}
+		
+		return false;
 	}
 
 	public static int addInteractionToCu(String interactionType, LogCat log, int i, BlockStmt b) {
