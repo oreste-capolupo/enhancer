@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-  <groupId>it.enancher</groupId>
-  <artifactId>enancher</artifactId>
+  <groupId>it.enhancer</groupId>
+  <artifactId>enhancer</artifactId>
   <versioning>
     <versions>
       <version>0.0.1-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20181212150625</lastUpdated>
+    <lastUpdated>20181212152216</lastUpdated>
   </versioning>
 </metadata>
