@@ -23,33 +23,50 @@ import com.github.javaparser.symbolsolver.javaparser.Navigator;
 
 public class Enhancer {
 
-	public static CompilationUnit cu;
-	public static List<Operation> operations;
-	public static boolean firstTest;
-	public static StringBuilder parameters;
-	public static StringBuilder field;
+	private CompilationUnit cu;
+	private List<Operation> operations;
+	private boolean firstTest;
+	private StringBuilder parameters;
+	private StringBuilder field;
+	private String path;
 
-	public static void main(String[] args) throws IOException {
-		FileInputStream in = new FileInputStream("files/baseespressotest.java");
-		cu = JavaParser.parse(in);
-
-		addImportsInCompilationUnit();
-
-		addPrivateField();
-
-		addActivityInstanceMethod();
-
-		// visit the body of all methods in the class
-		cu.accept(new MethodVisitor(), null);
-		// System.out.println(cu.toString());
-
-		// generate enhanced java file
-		PrintWriter w = new PrintWriter("files/enhanced_espresso_test.java", "UTF-8");
-		w.print(cu.toString());
-		w.close();
+	public Enhancer(String path) {
+		this.path = path;
 	}
 
-	private static void addPrivateField() {
+	public void generateEnhancedClass() {
+		try {
+			int slashIndex = path.lastIndexOf('/');
+			int dotIndex = path.lastIndexOf('.');
+			
+			String folderPath = path.substring(0, slashIndex+1);
+			String filename = path.substring(slashIndex+1, dotIndex);
+			
+			FileInputStream in = new FileInputStream(path);
+			cu = JavaParser.parse(in);
+
+			addImportsInCompilationUnit();
+
+			addPrivateField();
+
+			addActivityInstanceMethod();
+
+			// visit the body of all methods in the class
+			cu.accept(new MethodVisitor(), null);
+			// System.out.println(cu.toString());
+
+			// generate enhanced java file
+			PrintWriter w = new PrintWriter(folderPath + filename + "_enhanced.java", "UTF-8");
+			w.print(cu.toString());
+			w.close();
+		} catch (FileNotFoundException f) {
+			System.out.println("File: " + path + " not found!");
+		} catch (UnsupportedEncodingException u) {
+			System.out.println("Unsupported encoding on enhanced file");
+		}
+	}
+
+	private void addPrivateField() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 
 		if (isNotInMembersList(ci, "currentActivity")) {
@@ -58,7 +75,7 @@ public class Enhancer {
 		}
 	}
 
-	private static void addImportsInCompilationUnit() {
+	private void addImportsInCompilationUnit() {
 		// imports only if it does not exist
 		cu.addImport("it.feio.android.omninotes.TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
@@ -72,7 +89,7 @@ public class Enhancer {
 		cu.addImport("android.graphics.Rect", false, false);
 	}
 
-	private static void addActivityInstanceMethod() {
+	private void addActivityInstanceMethod() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 
 		if (isNotInMembersList(ci, "getActivityInstance")) {
@@ -98,7 +115,7 @@ public class Enhancer {
 		}
 	}
 
-	private static boolean isNotInMembersList(ClassOrInterfaceDeclaration ci, String member) {
+	private boolean isNotInMembersList(ClassOrInterfaceDeclaration ci, String member) {
 		NodeList<BodyDeclaration<?>> members = ci.getMembers();
 
 		for (BodyDeclaration<?> bd : members) {
@@ -111,7 +128,7 @@ public class Enhancer {
 		return true;
 	}
 
-	private static class MethodVisitor extends ModifierVisitor<Void> {
+	private class MethodVisitor extends ModifierVisitor<Void> {
 		@Override
 		public BlockStmt visit(BlockStmt b, Void arg) {
 			/*
@@ -141,7 +158,7 @@ public class Enhancer {
 
 	}
 
-	public static void parseJsonScope(JSONObject j) {
+	private void parseJsonScope(JSONObject j) {
 		try {
 			parseJsonScope(j = j.getJSONObject("scope"));
 			// gets onView or onData and all nested performs and checks but the last one
@@ -156,7 +173,7 @@ public class Enhancer {
 		}
 	}
 
-	public static void parseJsonArgument(JSONObject j, JSONArray a, int i) {
+	private void parseJsonArgument(JSONObject j, JSONArray a, int i) {
 		try {
 			if (a == null)
 				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
@@ -173,7 +190,7 @@ public class Enhancer {
 		}
 	}
 
-	private static void parseScopeInArgument(JSONObject j) {
+	private void parseScopeInArgument(JSONObject j) {
 		try {
 			if (field.toString().isEmpty()) {
 				parseScopeInArgument(j = j.getJSONObject("scope"));
@@ -214,7 +231,7 @@ public class Enhancer {
 		}
 	}
 
-	private static void methodOverloading(JSONArray a, int i) {
+	private void methodOverloading(JSONArray a, int i) {
 		try {
 			String type = a.getJSONObject(i).getString("type");
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
@@ -235,9 +252,9 @@ public class Enhancer {
 
 			} else if (type.equals("MethodCallExpr")) {
 				// if the command is an assertion then "order" the list
-				if (!ViewAssertions.getSearchType(name).equals("")) 
-					operations.add(operations.size()-1, new Operation(name, parameters.toString()));
-				else 
+				if (!ViewAssertions.getSearchType(name).equals(""))
+					operations.add(operations.size() - 1, new Operation(name, parameters.toString()));
+				else
 					operations.add(new Operation(name, parameters.toString()));
 				parameters = new StringBuilder("");
 				field = new StringBuilder("");
@@ -252,7 +269,7 @@ public class Enhancer {
 		}
 	}
 
-	private static boolean isNotAnEspressoCommand(String name) {
+	private boolean isNotAnEspressoCommand(String name) {
 		String[] genericCommands = { "matches", "isDisplayed", "allOf" };
 
 		if (!ViewMatchers.getSearchType(name).equals("") || !ViewActions.getSearchType(name).equals(""))
@@ -266,7 +283,7 @@ public class Enhancer {
 		return true;
 	}
 
-	private static void methodParameters(JSONArray a, int j) {
+	private void methodParameters(JSONArray a, int j) {
 		try {
 			String type = a.getJSONObject(j).getString("type");
 			String value = a.getJSONObject(j).getString("value");
@@ -364,7 +381,7 @@ public class Enhancer {
 		}
 	}
 
-	public static int parseStatement(BlockStmt b, Statement s, int i) {
+	private int parseStatement(BlockStmt b, Statement s, int i) {
 		int index = i;
 		if (s.toString().contains("onView") || s.toString().contains("onData")) {
 			JsonPrinter printer = new JsonPrinter(true);
@@ -397,7 +414,7 @@ public class Enhancer {
 		return ++index;
 	}
 
-	private static int enhanceMethod(BlockStmt b, Statement s, int i) {
+	private int enhanceMethod(BlockStmt b, Statement s, int i) {
 		Statement instrumentation = JavaParser
 				.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
@@ -426,21 +443,21 @@ public class Enhancer {
 			 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
 			 * " is not supported or is not an Espresso command").printStackTrace(); }
 			 */
-			
+
 			if (!interactionType.equals("perform") && !interactionType.equals("check")) {
-				
+
 				if (interactionType.isEmpty()) {
 					interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
-					
+
 					if (!interactionType.isEmpty() && canItBeAnAssertionParameter(operations.get(++j)))
 						interactionType = "check";
 					else {
 						b.addStatement(i, st);
 						break;
 					}
-						
+
 				}
-				
+
 				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
 
 				if (firstTest) {
@@ -473,18 +490,20 @@ public class Enhancer {
 		return ++i;
 	}
 
-	private static boolean canItBeAnAssertionParameter(Operation operation) {
-		String[] assertionParameters = {"isDisplayed","isCompletelyDisplayed","isEnabled","hasFocus","isClickable","isChecked", "isNotChecked", "withEffectiveVisibility","isSelected", "withSpinnerText", "hasEllipsizedText", "withText"};
-		
+	private boolean canItBeAnAssertionParameter(Operation operation) {
+		String[] assertionParameters = { "isDisplayed", "isCompletelyDisplayed", "isEnabled", "hasFocus", "isClickable",
+				"isChecked", "isNotChecked", "withEffectiveVisibility", "isSelected", "withSpinnerText",
+				"hasEllipsizedText", "withText" };
+
 		for (String par : assertionParameters) {
 			if (par.equals(operation.getName()))
 				return true;
 		}
-		
+
 		return false;
 	}
 
-	public static int addInteractionToCu(String interactionType, LogCat log, int i, BlockStmt b) {
+	private int addInteractionToCu(String interactionType, LogCat log, int i, BlockStmt b) {
 		Statement l = null;
 		String stmt = "";
 
@@ -550,7 +569,7 @@ public class Enhancer {
 		return i;
 	}
 
-	public static void addFullCheck(BlockStmt b, int i) {
+	private void addFullCheck(BlockStmt b, int i) {
 		Statement date = JavaParser.parseStatement("now = new Date();");
 		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
 		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");

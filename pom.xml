@@ -32,5 +32,10 @@
     	<artifactId>javaparser-symbol-solver-core</artifactId>
     	<version>3.5.20</version>
     </dependency>
+    <dependency>
+    	<groupId>org.json</groupId>
+    	<artifactId>json</artifactId>
+    	<version>20140107</version>
+	</dependency>
   </dependencies>
 </project>
