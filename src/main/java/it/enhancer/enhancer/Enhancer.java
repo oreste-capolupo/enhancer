@@ -40,7 +40,7 @@ public class Enhancer {
 			int dotIndex = path.lastIndexOf('.');
 			
 			String folderPath = path.substring(0, slashIndex+1);
-			String filename = path.substring(slashIndex+1, dotIndex);
+			String filename = path.substring(slashIndex+1, dotIndex); 
 			
 			FileInputStream in = new FileInputStream(path);
 			cu = JavaParser.parse(in);
@@ -449,7 +449,13 @@ public class Enhancer {
 				if (interactionType.isEmpty()) {
 					interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
 
-					if (!interactionType.isEmpty() && canItBeAnAssertionParameter(operations.get(++j)))
+					if (searchType.isEmpty() || interactionType.isEmpty()) {
+						b.addStatement(i, st);
+						break;
+					}
+					
+					// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for now.
+					if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
 						interactionType = "check";
 					else {
 						b.addStatement(i, st);
