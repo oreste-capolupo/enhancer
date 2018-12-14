@@ -19,11 +19,29 @@ public enum ViewActions {
 	public static String getSearchType(String matcher) {
 		Object[] va = ViewActions.values();
 
-		for (Object o : va)
+		int low = 0;
+        int high = va.length - 1;
+        int mid;
+
+        while (low <= high) {
+            mid = (low + high) / 2;
+
+            if (((ViewActions)va[mid]).name().compareTo(matcher) < 0) {
+                low = mid + 1;
+            } else if (((ViewActions)va[mid]).name().compareTo(matcher) > 0) {
+                high = mid - 1;
+            } else {
+                return ((ViewActions) va[mid]).getValue();
+            }
+        }
+
+        return "";
+		
+/*		for (Object o : va)
 			if (((ViewActions) o).name().equals(matcher))
 				return ((ViewActions) o).getValue();
 
-		return "";
+		return "";*/
 	}
 
 }

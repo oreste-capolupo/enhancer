@@ -1,9 +1,8 @@
 package it.enhancer.enhancer;
 
 public enum ViewAssertions {
-	matches("matches"), isLeftOf("isleftof"), isRightOf("isrightof"), isLeftAlignedWith("isleftalignedwith"),
-	isRightAlignedWith("isrightalignedwith"), isAbove("isabove"), isBelow("isbelow"), isBottomAlignedWith("isbottomalignedwith"),
-	isTopAlignedWith("istopalignedwith");
+	isAbove("isabove"), isBelow("isbelow"), isBottomAlignedWith("isbottomalignedwith"), isLeftAlignedWith("isleftalignedwith"), isLeftOf("isleftof"), 
+	isRightAlignedWith("isrightalignedwith"), isRightOf("isrightof"), isTopAlignedWith("istopalignedwith"), matches("matches");
 
 	private String value;
 
@@ -17,11 +16,29 @@ public enum ViewAssertions {
 
 	public static String getSearchType(String matcher) {
 		Object[] va = ViewAssertions.values();
+		
+		int low = 0;
+        int high = va.length - 1;
+        int mid;
 
-		for (Object o : va)
+        while (low <= high) {
+            mid = (low + high) / 2;
+
+            if (((ViewAssertions)va[mid]).name().compareTo(matcher) < 0) {
+                low = mid + 1;
+            } else if (((ViewAssertions)va[mid]).name().compareTo(matcher) > 0) {
+                high = mid - 1;
+            } else {
+                return ((ViewAssertions) va[mid]).getValue();
+            }
+        }
+
+        return "";
+
+		/*for (Object o : va)
 			if (((ViewAssertions) o).name().equals(matcher))
 				return ((ViewAssertions) o).getValue();
 
-		return "";
+		return "";*/
 	}
 }

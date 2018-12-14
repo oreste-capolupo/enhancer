@@ -2,7 +2,9 @@ package it.enhancer.enhancer;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,24 +30,38 @@ public class Enhancer {
 	private boolean firstTest;
 	private StringBuilder parameters;
 	private StringBuilder field;
-	private String path;
 
-	public Enhancer(String path) {
-		this.path = path;
+	private Map<String, Integer> statistic;
+	private String projectPath;
+
+	public Enhancer(String projectPath) {
+		this.projectPath = projectPath;
+		this.statistic = new HashMap<String, Integer>();
 	}
 
-	public void generateEnhancedClass() {
+	public void generateEnhancedClassFrom(String filePath) {
 		try {
-			int slashIndex = path.lastIndexOf('/');
-			int dotIndex = path.lastIndexOf('.');
-			
-			String folderPath = path.substring(0, slashIndex+1);
-			String filename = path.substring(slashIndex+1, dotIndex); 
-			
-			FileInputStream in = new FileInputStream(path);
+			String statisticFilePath = projectPath + "enhancer_statistic.txt";
+			File f = new File(statisticFilePath);
+			if (f.exists() && !f.isDirectory()) {
+				// populateStatisticFromFile(statisticFilePath);
+				f.delete();
+			}
+
+			// the statistic file does not exist
+			if (statistic.isEmpty())
+				populateEmptyStatistic();
+
+			int slashIndex = filePath.lastIndexOf('/');
+			int dotIndex = filePath.lastIndexOf('.');
+
+			String folderPath = filePath.substring(0, slashIndex + 1);
+			String filename = filePath.substring(slashIndex + 1, dotIndex);
+
+			FileInputStream in = new FileInputStream(filePath);
 			cu = JavaParser.parse(in);
 
-			addImportsInCompilationUnit();
+			addImportsToCompilationUnit();
 
 			addPrivateField();
 
@@ -59,11 +75,22 @@ public class Enhancer {
 			PrintWriter w = new PrintWriter(folderPath + filename + "_enhanced.java", "UTF-8");
 			w.print(cu.toString());
 			w.close();
+
+			// save statistic into file
+			Statistic.writeDataToFile(statistic, statisticFilePath);
 		} catch (FileNotFoundException f) {
-			System.out.println("File: " + path + " not found!");
+			System.out.println("File: " + filePath + " not found!");
 		} catch (UnsupportedEncodingException u) {
 			System.out.println("Unsupported encoding on enhanced file");
 		}
+	}
+
+	private void populateStatisticFromFile(String statisticFilePath) {
+		statistic = Statistic.readDataFromFile(statisticFilePath);
+	}
+
+	private void populateEmptyStatistic() {
+		statistic = Statistic.populateInitialMap();
 	}
 
 	private void addPrivateField() {
@@ -75,7 +102,7 @@ public class Enhancer {
 		}
 	}
 
-	private void addImportsInCompilationUnit() {
+	private void addImportsToCompilationUnit() {
 		// imports only if it does not exist
 		cu.addImport("it.feio.android.omninotes.TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
@@ -238,7 +265,7 @@ public class Enhancer {
 
 			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
 					&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
-					&& isNotAnEspressoCommand(name)) {
+					&& !field.toString().startsWith("Matchers.") && isNotAnEspressoCommand(name)) {
 				String fd = field.toString();
 				name = fd.concat(name);
 			}
@@ -256,6 +283,11 @@ public class Enhancer {
 					operations.add(operations.size() - 1, new Operation(name, parameters.toString()));
 				else
 					operations.add(new Operation(name, parameters.toString()));
+
+				// save occurrences
+				Integer oldStatistic = statistic.get(name);
+				statistic.put(name, oldStatistic.intValue() + 1);
+
 				parameters = new StringBuilder("");
 				field = new StringBuilder("");
 			}
@@ -325,7 +357,7 @@ public class Enhancer {
 
 				if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
 						&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
-						&& isNotAnEspressoCommand(name)) {
+						&& !field.toString().startsWith("Matchers.") && isNotAnEspressoCommand(name)) {
 					field.append(name + ",");
 					name = field.toString();
 				}
@@ -453,8 +485,9 @@ public class Enhancer {
 						b.addStatement(i, st);
 						break;
 					}
-					
-					// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for now.
+
+					// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
+					// now.
 					if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
 						interactionType = "check";
 					else {
@@ -497,14 +530,31 @@ public class Enhancer {
 	}
 
 	private boolean canItBeAnAssertionParameter(Operation operation) {
-		String[] assertionParameters = { "isDisplayed", "isCompletelyDisplayed", "isEnabled", "hasFocus", "isClickable",
-				"isChecked", "isNotChecked", "withEffectiveVisibility", "isSelected", "withSpinnerText",
-				"hasEllipsizedText", "withText" };
+		String[] assertionParameters = { "hasEllipsizedText", "hasFocus", "isChecked", "isClickable",
+				"isCompletelyDisplayed", "isDisplayed", "isEnabled", "isNotChecked", "isSelected",
+				"withEffectiveVisibility", "withSpinnerText", "withText" };
+		String name = operation.getName();
 
-		for (String par : assertionParameters) {
-			if (par.equals(operation.getName()))
+		int low = 0;
+		int high = assertionParameters.length - 1;
+		int mid;
+
+		while (low <= high) {
+			mid = (low + high) / 2;
+
+			if (assertionParameters[mid].compareTo(name) < 0) {
+				low = mid + 1;
+			} else if (assertionParameters[mid].compareTo(name) > 0) {
+				high = mid - 1;
+			} else {
 				return true;
+			}
 		}
+
+		/*
+		 * for (String par : assertionParameters) { if (par.equals(operation.getName()))
+		 * return true; }
+		 */
 
 		return false;
 	}
