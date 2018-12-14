@@ -2,23 +2,23 @@
 <metadata modelVersion="1.1.0">
   <groupId>it.enhancer</groupId>
   <artifactId>enhancer</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.1.2-SNAPSHOT</version>
   <versioning>
     <snapshot>
-      <timestamp>20181213.142315</timestamp>
+      <timestamp>20181214.085012</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
-    <lastUpdated>20181213142315</lastUpdated>
+    <lastUpdated>20181214085012</lastUpdated>
     <snapshotVersions>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>0.1.1-20181213.142315-1</value>
-        <updated>20181213142315</updated>
+        <value>0.1.2-20181214.085012-1</value>
+        <updated>20181214085012</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>0.1.1-20181213.142315-1</value>
-        <updated>20181213142315</updated>
+        <value>0.1.2-20181214.085012-1</value>
+        <updated>20181214085012</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
