@@ -19,11 +19,9 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.TryStmt;
-import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
-import com.github.javaparser.symbolsolver.javaparsermodel.TypeExtractor;
 
 public class Enhancer {
 
@@ -35,9 +33,11 @@ public class Enhancer {
 
 	private Map<String, Integer> statistic;
 	private String projectPath;
+	private String packageName;
 
-	public Enhancer(String projectPath) {
+	public Enhancer(String projectPath, String packageName) {
 		this.projectPath = projectPath;
+		this.packageName = packageName;
 		this.statistic = new HashMap<String, Integer>();
 	}
 
@@ -87,6 +87,7 @@ public class Enhancer {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void populateStatisticFromFile(String statisticFilePath) {
 		statistic = Statistic.readDataFromFile(statisticFilePath);
 	}
@@ -107,6 +108,7 @@ public class Enhancer {
 
 	private void addImportsToCompilationUnit() {
 		// imports only if it does not exist
+		cu.addImport(packageName + ".TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
 		cu.addImport("android.app.Activity", false, false);
 		cu.addImport("android.app.Instrumentation", false, false);
@@ -190,11 +192,13 @@ public class Enhancer {
 	private void parseJsonScope(JSONObject j) {
 		try {
 			parseJsonScope(j = j.getJSONObject("scope"));
+
 			// gets onView or onData and all nested performs and checks but the last one
-			// System.out.println("1: "+j.getJSONObject("name").getString("identifier"));
-			if (!j.getJSONObject("name").getString("identifier").equals("onView")
-					&& !j.getJSONObject("name").getString("identifier").equals("onData"))
-				operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
+			String name = j.getJSONObject("name").getString("identifier");
+
+			if (!name.equals("onView") && !name.equals("onData"))
+				operations.add(new Operation(name, ""));
+
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
 			// TODO: handle exception
@@ -272,19 +276,22 @@ public class Enhancer {
 				name = fd.concat(name);
 			}
 
+			String parametersValue = parameters.toString();
+
 			if (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)) {
-				if (parameters.toString().isEmpty())
+
+				if (parametersValue.isEmpty())
 					parameters.append(name + "()");
 				else
-					parameters = new StringBuilder(name + "(" + parameters.toString() + ")");
+					parameters = new StringBuilder(name + "(" + parametersValue + ")");
 				field = new StringBuilder("");
 
 			} else if (type.equals("MethodCallExpr")) {
 				// if the command is an assertion then "order" the list
 				if (!ViewAssertions.getSearchType(name).equals(""))
-					operations.add(operations.size() - 1, new Operation(name, parameters.toString()));
+					operations.add(operations.size() - 1, new Operation(name, parametersValue));
 				else
-					operations.add(new Operation(name, parameters.toString()));
+					operations.add(new Operation(name, parametersValue));
 
 				// save occurrences
 				Integer oldStatistic = statistic.get(name);
@@ -304,24 +311,18 @@ public class Enhancer {
 	}
 
 	private boolean isNotAnEspressoCommand(String name) {
-		String[] genericCommands = { "allOf", "hasEllipsizedText", "hasFocus", "isChecked", "isClickable",
-				"isCompletelyDisplayed", "isDisplayed", "isEnabled", "isNotChecked", "isSelected",
-				"withEffectiveVisibility", "withSpinnerText" };
-
-		if (!ViewMatchers.getSearchType(name).equals("") || !ViewActions.getSearchType(name).equals("")
-				|| !ViewAssertions.getSearchType(name).equals(""))
-			return false;
+		String[] espressoCommands = EspressoCommands.getCommands();
 
 		int low = 0;
-		int high = genericCommands.length - 1;
+		int high = espressoCommands.length - 1;
 		int mid;
 
 		while (low <= high) {
 			mid = (low + high) / 2;
 
-			if (genericCommands[mid].compareTo(name) < 0) {
+			if (espressoCommands[mid].compareTo(name) < 0) {
 				low = mid + 1;
-			} else if (genericCommands[mid].compareTo(name) > 0) {
+			} else if (espressoCommands[mid].compareTo(name) > 0) {
 				high = mid - 1;
 			} else {
 				return false;
@@ -335,15 +336,16 @@ public class Enhancer {
 		try {
 			String type = a.getJSONObject(j).getString("type");
 			String value = a.getJSONObject(j).getString("value");
+			String parametersValue = parameters.toString();
 
 			if (field.toString().isEmpty()) {
 				if (type.equals("StringLiteralExpr")) {
-					if (parameters.toString().isEmpty())
+					if (parametersValue.isEmpty())
 						parameters.append("\"" + value + "\"");
 					else
 						parameters.append("," + "\"" + value + "\"");
 				} else {
-					if (parameters.toString().isEmpty())
+					if (parametersValue.isEmpty())
 						parameters.append(value);
 					else
 						parameters.append("," + value);
@@ -378,12 +380,14 @@ public class Enhancer {
 					name = field.toString();
 				}
 
+				String parametersValue = parameters.toString();
+
 				if (!type.equals("MethodCallExpr") || (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)
 						&& !parameters.toString().contains(name + "("))) {
 
 					// field access
 					if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id.")) {
-						if (parameters.toString().isEmpty())
+						if (parametersValue.isEmpty())
 							parameters.append("\"" + name + "\"");
 						else
 							parameters.append("," + "\"" + name + "\"");
@@ -392,7 +396,7 @@ public class Enhancer {
 
 						// field access
 					} else if (type.equals("FieldAccessExpr")) {
-						if (parameters.toString().isEmpty())
+						if (parametersValue.isEmpty())
 							parameters.append(name.substring(0, name.length() - 1));
 						else
 							parameters.append("," + name.substring(0, name.length() - 1));
@@ -401,12 +405,12 @@ public class Enhancer {
 					} else if (type.equals("ArrayAccessExpr")) {
 						if (name.charAt(name.length() - 1) != ',') {
 
-							if (parameters.toString().isEmpty())
+							if (parametersValue.isEmpty())
 								parameters.append(name + "[" + index + "]");
 							else
 								parameters.append("," + name + "[" + index + "]");
 						} else {
-							if (parameters.toString().isEmpty())
+							if (parametersValue.isEmpty())
 								parameters.append(name.substring(0, name.length() - 1) + "[" + index + "]");
 							else
 								parameters.append("," + name.substring(0, name.length() - 1) + "[" + index + "]");
@@ -415,7 +419,7 @@ public class Enhancer {
 						// name expr
 					} else {
 						if (field.toString().isEmpty()) {
-							if (parameters.toString().isEmpty())
+							if (parametersValue.isEmpty())
 								parameters.append(name);
 							else
 								parameters.append("," + name);
@@ -431,7 +435,9 @@ public class Enhancer {
 
 	private int parseStatement(BlockStmt b, Statement s, int i) {
 		int index = i;
-		if (s.toString().contains("onView") || s.toString().contains("onData")) {
+		String stmtString = s.toString();
+
+		if (stmtString.contains("onView") || stmtString.contains("onData")) {
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
 
@@ -443,9 +449,8 @@ public class Enhancer {
 				j = j.getJSONObject("expression");
 
 				parseJsonScope(j);
+
 				// gets the last check or perform
-				// System.out.println("2: "+j.getJSONObject("name").getString("identifier"));
-				// if (j.getJSONObject("name").getString("identifier").equals("check"))
 				operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
 
 				parseJsonArgument(j, null, 0);

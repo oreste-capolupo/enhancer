@@ -60,8 +60,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Text;
 
-import it.feio.android.omninotes.TOGGLETools;
-
 import java.io.File;
 import java.security.Key;
 import java.util.Collection;

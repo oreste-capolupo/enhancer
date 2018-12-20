@@ -80,6 +80,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
+import it.feio.android.omninotes.TOGGLETools;
 import android.widget.TextView;
 import android.graphics.Rect;
 

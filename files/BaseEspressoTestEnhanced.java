@@ -56,7 +56,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Text;
-import it.feio.android.omninotes.TOGGLETools;
 import java.io.File;
 import java.security.Key;
 import java.util.Collection;
@@ -92,6 +91,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
+import it.feio.android.omninotes.TOGGLETools;
 
 public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
 
