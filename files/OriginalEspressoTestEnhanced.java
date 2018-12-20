@@ -80,11 +80,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
-import it.feio.android.omninotes.TOGGLETools;
 import android.widget.TextView;
 import android.graphics.Rect;
 
-public class BaseEspressoTest extends BaseAndroidTestCase {
+public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
 
     private Activity currentActivity;
 
@@ -174,7 +173,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     // onView(withId(R.id.recipient_list)).perform(ViewActions.pressKey(KeyEvent.KEYCODE_0));
     // onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
     // onView(withText(array[j].getName())).perform(longClick());
-    // onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
+    // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
     /*onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), doubleClick()).perform(click());
 
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));

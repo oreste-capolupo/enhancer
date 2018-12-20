@@ -86,7 +86,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
 
-public class BaseEspressoTest extends BaseAndroidTestCase {
+public class OriginalEspressoTest extends BaseAndroidTestCase {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class, false, false);
@@ -115,7 +115,7 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
         //onView(allOf(withText(var), withContentDescription("desc"), withText(a.name), withId(R.id.edit_filter_name))).perform(replaceText(FILTER), typeText("text"));
         //onView(withText(array[j].getName())).perform(longClick());
 
-        //onView(allOf(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value")), withId(R.id.something))).perform(click());
+        //onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
 
         /*onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), doubleClick()).perform(click());
 

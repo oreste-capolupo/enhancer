@@ -19,9 +19,11 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.TryStmt;
+import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
+import com.github.javaparser.symbolsolver.javaparsermodel.TypeExtractor;
 
 public class Enhancer {
 
@@ -72,7 +74,7 @@ public class Enhancer {
 			// System.out.println(cu.toString());
 
 			// generate enhanced java file
-			PrintWriter w = new PrintWriter(folderPath + filename + "_enhanced.java", "UTF-8");
+			PrintWriter w = new PrintWriter(folderPath + filename + "Enhanced.java", "UTF-8");
 			w.print(cu.toString());
 			w.close();
 
@@ -95,6 +97,7 @@ public class Enhancer {
 
 	private void addPrivateField() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
+		ci.setName(ci.getName() + "Enhanced");
 
 		if (isNotInMembersList(ci, "currentActivity")) {
 			BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
@@ -104,7 +107,6 @@ public class Enhancer {
 
 	private void addImportsToCompilationUnit() {
 		// imports only if it does not exist
-		cu.addImport("it.feio.android.omninotes.TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
 		cu.addImport("android.app.Activity", false, false);
 		cu.addImport("android.app.Instrumentation", false, false);
@@ -302,14 +304,28 @@ public class Enhancer {
 	}
 
 	private boolean isNotAnEspressoCommand(String name) {
-		String[] genericCommands = { "matches", "isDisplayed", "allOf" };
+		String[] genericCommands = { "allOf", "hasEllipsizedText", "hasFocus", "isChecked", "isClickable",
+				"isCompletelyDisplayed", "isDisplayed", "isEnabled", "isNotChecked", "isSelected",
+				"withEffectiveVisibility", "withSpinnerText" };
 
-		if (!ViewMatchers.getSearchType(name).equals("") || !ViewActions.getSearchType(name).equals(""))
+		if (!ViewMatchers.getSearchType(name).equals("") || !ViewActions.getSearchType(name).equals("")
+				|| !ViewAssertions.getSearchType(name).equals(""))
 			return false;
 
-		for (String a : genericCommands) {
-			if (a.equals(name))
+		int low = 0;
+		int high = genericCommands.length - 1;
+		int mid;
+
+		while (low <= high) {
+			mid = (low + high) / 2;
+
+			if (genericCommands[mid].compareTo(name) < 0) {
+				low = mid + 1;
+			} else if (genericCommands[mid].compareTo(name) > 0) {
+				high = mid - 1;
+			} else {
 				return false;
+			}
 		}
 
 		return true;

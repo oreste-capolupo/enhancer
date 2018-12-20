@@ -93,7 +93,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
 
-public class BaseEspressoTest extends BaseAndroidTestCase {
+public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
 
     private Activity currentActivity;
 
