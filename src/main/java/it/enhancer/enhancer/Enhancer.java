@@ -183,6 +183,8 @@ public class Enhancer {
 
 				// add fullcheck at the bottom of the method
 				addFullCheck(b, i);
+
+				System.out.println("");
 			}
 			return b;
 		}
@@ -288,9 +290,10 @@ public class Enhancer {
 
 			} else if (type.equals("MethodCallExpr")) {
 				// if the command is an assertion then "order" the list
-				if (!ViewAssertions.getSearchType(name).equals(""))
-					operations.add(operations.size() - 1, new Operation(name, parametersValue));
-				else
+				if (!ViewAssertions.getSearchType(name).equals("") || name.equals("allOf") || name.equals("anyOf")) {
+					int numberOfArguments = a.getJSONObject(i).getJSONArray("arguments").length();
+					operations.add(operations.size() - numberOfArguments, new Operation(name, parametersValue));
+				} else
 					operations.add(new Operation(name, parametersValue));
 
 				// save occurrences
