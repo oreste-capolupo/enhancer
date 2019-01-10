@@ -1,14 +1,11 @@
-withId:14
-click:5
-pressKey:5
-withContentDescription:4
-isDisplayed:2
-matches:2
-typeText:2
-longClick:2
-replaceText:2
-typeTextIntoFocusedView:1
-withText:1
+withId:4
+click:2
+withContentDescription:2
+isDisplayed:1
+matches:1
+typeText:1
+longClick:1
+replaceText:1
 isCompletelyRightOf:0
 selectedDescendantsMatch:0
 isLeftAlignedWith:0
@@ -100,6 +97,7 @@ scrollLeft:0
 hasSibling:0
 withTagValue:0
 isRightAlignedWith:0
+typeTextIntoFocusedView:0
 withDecorView:0
 assertThat:0
 isChecked:0
@@ -129,6 +127,7 @@ hasMinimumChildCount:0
 scrollToPosition:0
 hasEllipsizedText:0
 withClassName:0
+pressKey:0
 pressMenuKey:0
 swipeRight:0
 withTitle:0
@@ -137,4 +136,5 @@ withResourceName:0
 isClickable:0
 isAbove:0
 isTouchable:0
+withText:0
 startsWith:0

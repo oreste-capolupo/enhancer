@@ -102,9 +102,9 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
-        Activity activity = getActivityInstance();
+        Activity activityTOGGLETools = getActivityInstance();
         TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
@@ -112,9 +112,9 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         now = new Date();
-        activity = getActivityInstance();
+        activityTOGGLETools = getActivityInstance();
         TOGGLETools.LogInteraction(now, "id", "detail_title", "typetext", "TextToBeReplaced");
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
         try {
@@ -122,10 +122,10 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         now = new Date();
-        activity = getActivityInstance();
-        int textToBeReplacedLength17 = ((TextView) activity.findViewById(R.id.detail_title)).getText().length();
+        activityTOGGLETools = getActivityInstance();
+        int textToBeReplacedLength17 = ((TextView) activityTOGGLETools.findViewById(R.id.detail_title)).getText().length();
         TOGGLETools.LogInteraction(now, "id", "detail_title", "replacetext", String.valueOf(textToBeReplacedLength17) + ";" + "Replacement");
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
         try {
@@ -133,9 +133,9 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         now = new Date();
-        activity = getActivityInstance();
+        activityTOGGLETools = getActivityInstance();
         TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
@@ -143,9 +143,9 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         now = new Date();
-        activity = getActivityInstance();
+        activityTOGGLETools = getActivityInstance();
         TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
@@ -153,9 +153,9 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         now = new Date();
-        activity = getActivityInstance();
+        activityTOGGLETools = getActivityInstance();
         TOGGLETools.LogInteraction(now, "id", "settings_view", "check");
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
         try {
@@ -163,10 +163,10 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         } catch (Exception e) {
         }
         now = new Date();
-        activity = getActivityInstance();
-        Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activity);
+        activityTOGGLETools = getActivityInstance();
+        Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);
         TOGGLETools.LogInteraction(now, "-", "-", "fullcheck", currdisp.bottom + ";" + currdisp.top + ";" + currdisp.right + ";" + currdisp.left);
-        TOGGLETools.TakeScreenCapture(now, activity);
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
     // onView(withId(android.support.design.R.id.search_src_text)).perform(typeText("Uni"), pressKey(KeyEvent.KEYCODE_ENTER));
     // onView(withId(R.id.fab_expand_menu_button)).perform(longClick()).check(matches(isDisplayed())).perform(longClick());

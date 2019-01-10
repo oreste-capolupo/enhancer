@@ -32,27 +32,16 @@ public class Enhancer {
 	private StringBuilder field;
 
 	private Map<String, Integer> statistic;
-	private String projectPath;
 	private String packageName;
 
-	public Enhancer(String projectPath, String packageName) {
-		this.projectPath = projectPath;
+	public Enhancer(String packageName) {
 		this.packageName = packageName;
 		this.statistic = new HashMap<String, Integer>();
 	}
 
 	public void generateEnhancedClassFrom(String filePath) {
 		try {
-			String statisticFilePath = projectPath + "enhancer_statistic.txt";
-			File f = new File(statisticFilePath);
-			if (f.exists() && !f.isDirectory()) {
-				// populateStatisticFromFile(statisticFilePath);
-				f.delete();
-			}
-
-			// the statistic file does not exist
-			if (statistic.isEmpty())
-				populateEmptyStatistic();
+			populateEmptyStatistic();
 
 			int slashIndex = filePath.lastIndexOf('/');
 			int dotIndex = filePath.lastIndexOf('.');
@@ -73,13 +62,18 @@ public class Enhancer {
 			cu.accept(new MethodVisitor(), null);
 			// System.out.println(cu.toString());
 
+			System.out.println("");
+
+			String filenameEnhanced = folderPath + filename + "Enhanced.java";
+
 			// generate enhanced java file
-			PrintWriter w = new PrintWriter(folderPath + filename + "Enhanced.java", "UTF-8");
+			PrintWriter w = new PrintWriter(filenameEnhanced, "UTF-8");
 			w.print(cu.toString());
 			w.close();
 
 			// save statistic into file
-			Statistic.writeDataToFile(statistic, statisticFilePath);
+			String statisticFilename = folderPath + filename + "_Statistic.txt";
+			Statistic.writeDataToFile(statistic, statisticFilename);
 		} catch (FileNotFoundException f) {
 			System.out.println("File: " + filePath + " not found!");
 		} catch (UnsupportedEncodingException u) {
@@ -168,6 +162,7 @@ public class Enhancer {
 			 */
 			super.visit(b, arg);
 			String body = b.toString();
+
 			if (body.contains("onView") || body.contains("onData")) {
 
 				NodeList<Statement> nodes = b.getStatements();
@@ -182,11 +177,10 @@ public class Enhancer {
 					i = parseStatement(b, nodes.get(i), i);
 
 				// add fullcheck at the bottom of the method
-				if(!firstTest)
+				if (!firstTest)
 					addFullCheck(b, i);
-
-				System.out.println("");
 			}
+
 			return b;
 		}
 
@@ -273,8 +267,9 @@ public class Enhancer {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 
 			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-					//&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
-					/*&& !field.toString().startsWith("Matchers.")*/ && isNotAnEspressoCommand(name)) {
+			// && !field.toString().startsWith("ViewMatchers.") &&
+			// !field.toString().startsWith("ViewActions.")
+			/* && !field.toString().startsWith("Matchers.") */ && isNotAnEspressoCommand(name)) {
 				String fd = field.toString();
 				name = fd.concat(name);
 			}
@@ -378,8 +373,9 @@ public class Enhancer {
 					name = a.getJSONObject(j).getJSONObject("name").getString("identifier");
 
 				if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-						//&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
-						/*&& !field.toString().startsWith("Matchers.")*/ && isNotAnEspressoCommand(name)) {
+				// && !field.toString().startsWith("ViewMatchers.") &&
+				// !field.toString().startsWith("ViewActions.")
+				/* && !field.toString().startsWith("Matchers.") */ && isNotAnEspressoCommand(name)) {
 					field.append(name + ",");
 					name = field.toString();
 				}
@@ -466,6 +462,11 @@ public class Enhancer {
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
 			}
+		} else if (stmtString.contains("closeSoftKeyboard();")) {
+			// TODO: enhance interaction
+
+			Integer oldStatistic = statistic.get("closeSoftKeyboard");
+			statistic.put("closeSoftKeyboard", oldStatistic.intValue() + 1);
 		}
 		// return the next index if the statement is not a test
 		return ++index;
@@ -477,9 +478,10 @@ public class Enhancer {
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
 		Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
 		Statement date = JavaParser.parseStatement("now = new Date();");
-		Statement firstTestActivity = JavaParser.parseStatement("Activity activity = getActivityInstance();");
-		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
-		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
+		Statement firstTestActivity = JavaParser.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
+		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
+		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools"
+				+ ");");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
@@ -488,67 +490,69 @@ public class Enhancer {
 		String searchType = ViewMatchers.getSearchType(operations.get(0).getName());
 		String searchKw = operations.get(0).getParameter();
 
-		String stmtString = s.toString();
-		Statement st = JavaParser.parseStatement(stmtString);
+		if (!searchType.isEmpty()) {
+			String stmtString = s.toString();
+			Statement st = JavaParser.parseStatement(stmtString);
 
-		b.remove(s);
+			b.remove(s);
 
-		for (int j = 1; j < operations.size(); j++) {
-			String interactionType = ViewActions.getSearchType(operations.get(j).getName());
-			String interactionParams = operations.get(j).getParameter();
-			/*
-			 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
-			 * " is not supported or is not an Espresso command").printStackTrace(); }
-			 */
+			for (int j = 1; j < operations.size(); j++) {
+				String interactionType = ViewActions.getSearchType(operations.get(j).getName());
+				String interactionParams = operations.get(j).getParameter();
+				/*
+				 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
+				 * " is not supported or is not an Espresso command").printStackTrace(); }
+				 */
 
-			if (!interactionType.equals("perform") && !interactionType.equals("check")) {
+				if (!interactionType.equals("perform") && !interactionType.equals("check")) {
 
-				if (interactionType.isEmpty()) {
-					interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
+					if (interactionType.isEmpty()) {
+						interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
 
-					if (searchType.isEmpty() || interactionType.isEmpty()) {
-						b.addStatement(i, st);
-						break;
+						if (searchType.isEmpty() || interactionType.isEmpty()) {
+							b.addStatement(i, st);
+							break;
+						}
+
+						// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
+						// now.
+						if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
+							interactionType = "check";
+						else {
+							b.addStatement(i, st);
+							break;
+						}
+
 					}
 
-					// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
-					// now.
-					if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
-						interactionType = "check";
-					else {
-						b.addStatement(i, st);
-						break;
+					LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
+
+					if (firstTest) {
+						firstTest = false;
+						b.addStatement(i, instrumentation);
+						b.addStatement(++i, device);
+						b.addStatement(++i, firstTestDate);
+						b.addStatement(++i, firstTestActivity);
+					} else if (j == 3 && interactionType.equals("check") || j == 2) {
+						b.addStatement(i, date);
+						b.addStatement(++i, activity);
+
+						// this makes it work on test cases with multiple interactions avoiding the try
+						// statements to stay to the bottom
+					} else {
+						b.addStatement(++i, date);
+						b.addStatement(++i, activity);
 					}
 
+					i = addInteractionToCu(interactionType, log, i, b);
+
+					b.addStatement(++i, screenCapture);
+					b.addStatement(++i, dumpScreen);
+					b.addStatement(++i, st);
+					b.addStatement(++i, tryStmt);
 				}
 
-				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
-
-				if (firstTest) {
-					firstTest = false;
-					b.addStatement(i, instrumentation);
-					b.addStatement(++i, device);
-					b.addStatement(++i, firstTestDate);
-					b.addStatement(++i, firstTestActivity);
-				} else if (j == 3 && interactionType.equals("check") || j == 2) {
-					b.addStatement(i, date);
-					b.addStatement(++i, activity);
-
-					// this makes it work on test cases with multiple interactions avoiding the try
-					// statements to stay to the bottom
-				} else {
-					b.addStatement(++i, date);
-					b.addStatement(++i, activity);
-				}
-
-				i = addInteractionToCu(interactionType, log, i, b);
-
-				b.addStatement(++i, screenCapture);
-				b.addStatement(++i, dumpScreen);
-				b.addStatement(++i, st);
-				b.addStatement(++i, tryStmt);
 			}
-
 		}
 
 		return ++i;
@@ -595,7 +599,7 @@ public class Enhancer {
 			// the 'i' in the variable name is used to make it unique in case we have
 			// multiple interactions of the same type
 			// substring removes the " from the string
-			stmt = "int textToBeReplacedLength" + i + " = ((TextView) activity.findViewById(R.id."
+			stmt = "int textToBeReplacedLength" + i + " = ((TextView) activityTOGGLETools.findViewById(R.id."
 					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
 			b.addStatement(++i, JavaParser.parseStatement(stmt));
 
@@ -605,7 +609,7 @@ public class Enhancer {
 							+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
 			break;
 		case "cleartext":
-			stmt = "int textToBeClearedLength" + i + " = ((TextView) activity.findViewById(R.id."
+			stmt = "int textToBeClearedLength" + i + " = ((TextView) activityTOGGLETools.findViewById(R.id."
 					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
 			b.addStatement(++i, JavaParser.parseStatement(stmt));
 
@@ -652,11 +656,11 @@ public class Enhancer {
 
 	private void addFullCheck(BlockStmt b, int i) {
 		Statement date = JavaParser.parseStatement("now = new Date();");
-		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
-		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
+		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
+		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
-		Statement currDisp = JavaParser.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activity);");
+		Statement currDisp = JavaParser.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);");
 
 		String stmt = "TOGGLETools.LogInteraction(now, \"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
 		Statement log = JavaParser.parseStatement(stmt);
