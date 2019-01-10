@@ -108,7 +108,7 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -118,7 +118,7 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(typeText("TextToBeReplaced"));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -129,7 +129,7 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(replaceText("Replacement"));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -139,7 +139,7 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -149,7 +149,7 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -159,7 +159,7 @@ public class OriginalEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.settings_view)).check(matches(isDisplayed()));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();

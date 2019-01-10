@@ -117,7 +117,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -127,7 +127,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(typeTextIntoFocusedView("IntoFocused"));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -143,7 +143,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_P));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -159,7 +159,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_R));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -175,7 +175,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_E));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -191,7 +191,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -207,7 +207,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -217,7 +217,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_content)).perform(typeText("content"));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -228,7 +228,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_content)).perform(replaceText("ciao"));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -238,7 +238,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -248,7 +248,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withText("IntoFocusedpress")).check(matches(isDisplayed()));
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -258,7 +258,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
@@ -268,7 +268,7 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.settings_view)).perform(click());
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();

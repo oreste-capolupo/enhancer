@@ -182,7 +182,8 @@ public class Enhancer {
 					i = parseStatement(b, nodes.get(i), i);
 
 				// add fullcheck at the bottom of the method
-				addFullCheck(b, i);
+				if(!firstTest)
+					addFullCheck(b, i);
 
 				System.out.println("");
 			}
@@ -272,8 +273,8 @@ public class Enhancer {
 			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 
 			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-					&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
-					&& !field.toString().startsWith("Matchers.") && isNotAnEspressoCommand(name)) {
+					//&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
+					/*&& !field.toString().startsWith("Matchers.")*/ && isNotAnEspressoCommand(name)) {
 				String fd = field.toString();
 				name = fd.concat(name);
 			}
@@ -377,8 +378,8 @@ public class Enhancer {
 					name = a.getJSONObject(j).getJSONObject("name").getString("identifier");
 
 				if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
-						&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
-						&& !field.toString().startsWith("Matchers.") && isNotAnEspressoCommand(name)) {
+						//&& !field.toString().startsWith("ViewMatchers.") && !field.toString().startsWith("ViewActions.")
+						/*&& !field.toString().startsWith("Matchers.")*/ && isNotAnEspressoCommand(name)) {
 					field.append(name + ",");
 					name = field.toString();
 				}
@@ -480,7 +481,7 @@ public class Enhancer {
 		Statement activity = JavaParser.parseStatement("activity = getActivityInstance();");
 		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activity);");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
-		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(2000);\n"
+		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
 
 		// this works on test cases with one matcher
