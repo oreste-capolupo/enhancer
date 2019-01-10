@@ -163,7 +163,7 @@ public class Enhancer {
 			super.visit(b, arg);
 			String body = b.toString();
 
-			if (body.contains("onView") || body.contains("onData")) {
+			if (body.contains("onView") || body.contains("onData") || body.contains("intended") || body.contains("intending")) {
 
 				NodeList<Statement> nodes = b.getStatements();
 				firstTest = true;
@@ -193,7 +193,7 @@ public class Enhancer {
 			// gets onView or onData and all nested performs and checks but the last one
 			String name = j.getJSONObject("name").getString("identifier");
 
-			if (!name.equals("onView") && !name.equals("onData"))
+			if (!name.equals("onView") && !name.equals("onData") && !name.equals("intended") && !name.equals("intending"))
 				operations.add(new Operation(name, ""));
 
 			parseJsonArgument(j, null, 0);
@@ -437,7 +437,7 @@ public class Enhancer {
 		int index = i;
 		String stmtString = s.toString();
 
-		if (stmtString.contains("onView") || stmtString.contains("onData")) {
+		if (stmtString.contains("onView") || stmtString.contains("onData") || stmtString.contains("intended") || stmtString.contains("intending")) {
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
 
