@@ -122,6 +122,7 @@ withDecorView:0
 assertThat:0
 isChecked:0
 isInternal:0
+openContextualActionModeOverflowMenu:0
 isJavascriptEnabled:0
 actionOnItemAtPosition:0
 hasDescendant:0
@@ -153,6 +154,7 @@ hasEllipsizedText:0
 hasData:0
 hasHost:0
 withClassName:0
+openActionBarOverflowOrOptionsMenu:0
 pressKey:0
 pressMenuKey:0
 swipeRight:0

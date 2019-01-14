@@ -115,6 +115,36 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
+        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activityTOGGLETools = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        TOGGLETools.DumpScreen(now, device);
+        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activityTOGGLETools = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "check");
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        TOGGLETools.DumpScreen(now, device);
+        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activityTOGGLETools = getActivityInstance();
+        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
+        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
             Thread.sleep(1000);
@@ -132,13 +162,13 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal17 = String.valueOf(KeyEvent.KEYCODE_P);
-        String[] espressoKeyArray17 = espressoKeyVal17.split(",");
-        if (espressoKeyArray17.length > 1) {
-            int espressoKeyArrayIndex17 = espressoKeyArray17[0].indexOf(":");
-            espressoKeyVal17 = espressoKeyArray17[0].substring(espressoKeyArrayIndex17 + 1).trim();
+        String espressoKeyVal38 = String.valueOf(KeyEvent.KEYCODE_P);
+        String[] espressoKeyArray38 = espressoKeyVal38.split(",");
+        if (espressoKeyArray38.length > 1) {
+            int espressoKeyArrayIndex38 = espressoKeyArray38[0].indexOf(":");
+            espressoKeyVal38 = espressoKeyArray38[0].substring(espressoKeyArrayIndex38 + 1).trim();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal17);
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal38);
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_P));
@@ -148,13 +178,13 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal27 = String.valueOf(KeyEvent.KEYCODE_R);
-        String[] espressoKeyArray27 = espressoKeyVal27.split(",");
-        if (espressoKeyArray27.length > 1) {
-            int espressoKeyArrayIndex27 = espressoKeyArray27[0].indexOf(":");
-            espressoKeyVal27 = espressoKeyArray27[0].substring(espressoKeyArrayIndex27 + 1).trim();
+        String espressoKeyVal48 = String.valueOf(KeyEvent.KEYCODE_R);
+        String[] espressoKeyArray48 = espressoKeyVal48.split(",");
+        if (espressoKeyArray48.length > 1) {
+            int espressoKeyArrayIndex48 = espressoKeyArray48[0].indexOf(":");
+            espressoKeyVal48 = espressoKeyArray48[0].substring(espressoKeyArrayIndex48 + 1).trim();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal27);
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal48);
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_R));
@@ -164,13 +194,13 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal37 = String.valueOf(KeyEvent.KEYCODE_E);
-        String[] espressoKeyArray37 = espressoKeyVal37.split(",");
-        if (espressoKeyArray37.length > 1) {
-            int espressoKeyArrayIndex37 = espressoKeyArray37[0].indexOf(":");
-            espressoKeyVal37 = espressoKeyArray37[0].substring(espressoKeyArrayIndex37 + 1).trim();
+        String espressoKeyVal58 = String.valueOf(KeyEvent.KEYCODE_E);
+        String[] espressoKeyArray58 = espressoKeyVal58.split(",");
+        if (espressoKeyArray58.length > 1) {
+            int espressoKeyArrayIndex58 = espressoKeyArray58[0].indexOf(":");
+            espressoKeyVal58 = espressoKeyArray58[0].substring(espressoKeyArrayIndex58 + 1).trim();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal37);
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal58);
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_E));
@@ -180,13 +210,13 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal47 = String.valueOf(KeyEvent.KEYCODE_S);
-        String[] espressoKeyArray47 = espressoKeyVal47.split(",");
-        if (espressoKeyArray47.length > 1) {
-            int espressoKeyArrayIndex47 = espressoKeyArray47[0].indexOf(":");
-            espressoKeyVal47 = espressoKeyArray47[0].substring(espressoKeyArrayIndex47 + 1).trim();
+        String espressoKeyVal68 = String.valueOf(KeyEvent.KEYCODE_S);
+        String[] espressoKeyArray68 = espressoKeyVal68.split(",");
+        if (espressoKeyArray68.length > 1) {
+            int espressoKeyArrayIndex68 = espressoKeyArray68[0].indexOf(":");
+            espressoKeyVal68 = espressoKeyArray68[0].substring(espressoKeyArrayIndex68 + 1).trim();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal47);
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal68);
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
@@ -196,13 +226,13 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal57 = String.valueOf(KeyEvent.KEYCODE_S);
-        String[] espressoKeyArray57 = espressoKeyVal57.split(",");
-        if (espressoKeyArray57.length > 1) {
-            int espressoKeyArrayIndex57 = espressoKeyArray57[0].indexOf(":");
-            espressoKeyVal57 = espressoKeyArray57[0].substring(espressoKeyArrayIndex57 + 1).trim();
+        String espressoKeyVal78 = String.valueOf(KeyEvent.KEYCODE_S);
+        String[] espressoKeyArray78 = espressoKeyVal78.split(",");
+        if (espressoKeyArray78.length > 1) {
+            int espressoKeyArrayIndex78 = espressoKeyArray78[0].indexOf(":");
+            espressoKeyVal78 = espressoKeyArray78[0].substring(espressoKeyArrayIndex78 + 1).trim();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal57);
+        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal78);
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
@@ -222,8 +252,8 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        int textToBeReplacedLength74 = ((TextView) activityTOGGLETools.findViewById(R.id.detail_content)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_content", "replacetext", String.valueOf(textToBeReplacedLength74) + ";" + "ciao");
+        int textToBeReplacedLength95 = ((TextView) activityTOGGLETools.findViewById(R.id.detail_content)).getText().length();
+        TOGGLETools.LogInteraction(now, "id", "detail_content", "replacetext", String.valueOf(textToBeReplacedLength95) + ";" + "ciao");
         TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_content)).perform(replaceText("ciao"));
