@@ -13,13 +13,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FilenameUtils;
 
 public class Statistic {
+	
+	
+	
 	public static Map<String, Integer> populateInitialMap() {
-		Map<String, Integer> statistic = new HashMap<String, Integer>();
+		Map<String, Integer> statistic = new TreeMap<String, Integer>();
 
 		statistic.put("actionOnHolderItem",0);
 		statistic.put("actionOnItem",0);
@@ -127,6 +131,8 @@ public class Statistic {
 		statistic.put("noOverlaps",0);
 		statistic.put("not",0);
 		statistic.put("open",0);
+		statistic.put("openActionBarOverflowMenu", 0);
+		statistic.put("openContextualActionModeOverflowMenu", 0);
 		statistic.put("openDrawer",0);
 		statistic.put("openLink",0);
 		statistic.put("openLinkWithText",0);
@@ -212,9 +218,12 @@ public class Statistic {
 	}
 
 	public static Map<String, Integer> readDataFromFile(String statisticFilePath) {
-		Map<String, Integer> statistic = new HashMap<String, Integer>();
+		Map<String, Integer> statistic = populateInitialMap();
 
-		try (BufferedReader br = new BufferedReader(new FileReader(statisticFilePath))) {
+		
+		
+		
+		try (BufferedReader br = new BufferedReader(new FileReader(FilenameUtils.separatorsToSystem(statisticFilePath)))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String key = "";
@@ -226,7 +235,7 @@ public class Statistic {
 				statistic.put(key, value);
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return statistic;
 	}
@@ -243,6 +252,69 @@ public class Statistic {
 		return result;
 	}
 	
+	
+	
+	//********
+	//Function that returns the header line of the csv resulting file with all the statistics, based on the 
+	//different keywords that have been specified.
+	//It uses the populateInitialMap function to obtain the set of keys ordered by name
+	//********
+	
+	public static String createCSVHeader() {
+		
+		
+		String header = "project_name;class_name";
+		
+		TreeMap<String,Integer> dummy_map = (TreeMap<String, Integer>) populateInitialMap();
+		
+		for (Map.Entry<String,Integer> entry:dummy_map.entrySet()) {
+			
+			header+=";"+entry.getKey();
+		}
+		
+		return header; 
+		
+	}
+	
+	//******
+	//Function that returns a single line of the CSV file for the analysis of statistics. 
+	//It takes as input parameters the starting folders where the files are located, and the name of the examined class
+	//output is a string of the csv file in the form of project_name;class_path;stats(ordered by name)
+	//******
+	
+	public static String createCSVLine(String starting_folder, String file_name) {
+		
+		
+		String result = "";
+				
+		String[] filenameparts = file_name.split("/");
+		String project_name = filenameparts[0] + "/" + filenameparts[1];
+		
+		result += project_name;
+		
+		result += ";"+file_name;
+		
+		String statistics_file_path = FilenameUtils.separatorsToSystem(starting_folder) + FilenameUtils.removeExtension(FilenameUtils.separatorsToSystem(file_name)) + "_Statistic.txt";
+
+		
+		System.out.println("project: " + project_name);
+		System.out.println("statistics file path: " + statistics_file_path);
+
+		TreeMap<String, Integer> statistic = (TreeMap<String, Integer>) readDataFromFile(statistics_file_path);
+		
+		for (Map.Entry<String, Integer> mapentry: statistic.entrySet()) {
+
+			result+=";"+mapentry.getValue();
+		
+		}
+		
+		System.out.println(createCSVHeader());
+		
+		return result;
+
+		
+		
+	}
 	
 	
 	
@@ -268,14 +340,20 @@ public class Statistic {
 		}
 		s.close();
 		
+		int number_of_files = list.size();
 		
+		
+		int n = 0;
 		for (String filename: list) {
 						
+			n++;
+			System.out.println("doing " + filename + " (" + n + " of " + number_of_files + ")");
 			try {
 			en.generateEnhancedClassFrom(starting_folder + FilenameUtils.separatorsToSystem(filename));
 			}
 			catch (Exception e) {
 				fr.write("Exception during examination of " + FilenameUtils.separatorsToSystem(filename) + "\n" + e.getMessage() + "\n\n\n\n");
+				fr.write(e.getStackTrace().toString());
 			}
 			
 		}

@@ -23,7 +23,11 @@ public class Main {
 		
 		Enhancer en;
 		
+		//Statistic.statisticsOnListOfFiles("F:\\results_msr\\sorted_file_names.txt", "F:\\Espresso_new_projects\\espresso\\");
 		
+		Statistic.createCSVLine("F:\\Espresso_new_projects\\espresso\\", "ASDFDev/PAS-Quiet-Android/app/src/androidTest/java/com/setsuna/client/quiet/com/setsuna/client/quiet/debug/LecturerTest.java");
+		
+		/*
 		en = new Enhancer("org.andydyer.androidtestdemo");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/Tests/abdyer/android-test-demo/_app_src_androidTest_java_org_andydyer_androidtestdemo_LoginActivityTest.java");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/Tests/abdyer/android-test-demo/_app_src_androidTest_java_org_andydyer_androidtestdemo_MainActivityTest.java");
@@ -35,5 +39,6 @@ public class Main {
 		en = new Enhancer("UITests");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/Tests/WheresMyBus/android/_app_src_androidTest_java_UITests_TestHomePage.java");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/Tests/WheresMyBus/android/_app_src_androidTest_java_UITests_TestSubmitAlert.java");
+		*/
 	}
 }
