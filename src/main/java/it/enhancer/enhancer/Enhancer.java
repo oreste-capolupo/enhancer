@@ -290,7 +290,7 @@ public class Enhancer {
 				// if the command is an assertion then "order" the list
 				if (!ViewAssertions.getSearchType(name).equals("") || name.equals("allOf") || name.equals("anyOf")) {
 					int numberOfArguments = a.getJSONObject(i).getJSONArray("arguments").length();
-					if(operations.size() >= numberOfArguments)
+					if (operations.size() >= numberOfArguments)
 						operations.add(operations.size() - numberOfArguments, new Operation(name, parametersValue));
 					else
 						operations.add(new Operation(name, parametersValue));
@@ -442,6 +442,8 @@ public class Enhancer {
 		int index = i;
 		String stmtString = s.toString();
 
+		operations = new ArrayList<Operation>();
+		
 		if (stmtString.contains("onView") || stmtString.contains("onData") || stmtString.contains("intended")
 				|| stmtString.contains("intending")) {
 			JsonPrinter printer = new JsonPrinter(true);
@@ -461,8 +463,6 @@ public class Enhancer {
 				}
 
 			}
-
-			operations = new ArrayList<Operation>();
 
 			try {
 				JSONObject j = new JSONObject(json);
@@ -491,20 +491,34 @@ public class Enhancer {
 				System.out.println(operations.toString());
 
 				// returns the next index after enhancing the method
-				return index = enhanceMethod(b, s, i);
+				return enhanceMethod(b, s, i);
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
 			}
-		} else if (stmtString.contains("closeSoftKeyboard();")) {
-			// TODO: enhance interaction
+		} else {
+			String op = "";
+			if (stmtString.contains("closeSoftKeyboard();")) {
+				op = "closeSoftKeyboard";
+			} else if (stmtString.contains("pressBack();")) {
+				op = "pressBack";
+			} else if (stmtString.contains("pressBackUnconditionally();")) {
+				op = "pressBackUnconditionally";
+			} else if (stmtString.contains("openActionBarOverflowOrOptionsMenu();")) {
+				op = "openActionBarOverflowOrOptionsMenu";
+			} else if (stmtString.contains("openContextualActionModeOverflowMenu();")) {
+				op = "openContextualActionModeOverflowMenu";
+			}
 
-			Integer oldStatistic = statistic.get("closeSoftKeyboard");
-			statistic.put("closeSoftKeyboard", oldStatistic.intValue() + 1);
-		} else if (stmtString.contains("pressBack();")) {
-			// TODO: enhance interaction
-
-			Integer oldStatistic = statistic.get("pressBack");
-			statistic.put("pressBack", oldStatistic.intValue() + 1);
+			if (!op.isEmpty()) {
+				Integer oldStatistic = statistic.get(op);
+				statistic.put(op, oldStatistic.intValue() + 1);
+				
+				// enhance interaction
+				operations.add(new Operation("blank", "-"));
+				operations.add(new Operation(op, ""));
+				return enhanceMethod(b,  s, i);
+			}
+				
 		}
 		// return the next index if the statement is not a test
 		return ++index;
@@ -533,7 +547,7 @@ public class Enhancer {
 			searchKw = operations.get(0).getParameter();
 		}
 
-		if (!searchType.isEmpty()) {
+		if (!searchType.isEmpty() || searchType.equals("-")) {
 			String stmtString = s.toString();
 			Statement st = JavaParser.parseStatement(stmtString);
 
@@ -679,6 +693,14 @@ public class Enhancer {
 
 			l = JavaParser.parseStatement(stmt);
 
+			break;
+		case "pressback":
+		case "pressbackunconditionally":
+		case "closekeyboard":
+		case "openactionbaroverfloworoptionsmenu":
+		case "opencontextualactionmodeoverflowmenu":
+			l = JavaParser.parseStatement(
+					"TOGGLETools.LogInteraction(now, \"-\", \"-\"," + "\"" + log.getInteractionType() + "\"" + ");");
 			break;
 		default:
 			if (log.getInteractionParams().isEmpty())

@@ -4,7 +4,7 @@ public enum ViewActions {
 	check("check"), clearText("cleartext"), click("click"), closeSoftKeyboard("closekeyboard"), doubleClick("doubleclick"), 
 	fullcheck("fullcheck"), longClick("longclick"), openActionBarOverflowOrOptionsMenu("openactionbaroverfloworoptionsmenu"), 
 	openContextualActionModeOverflowMenu("opencontextualactionmodeoverflowmenu"), perform("perform"), pressBack("pressback"), 
-	pressBackUnconditionally("backunconditionally"), pressImeActionButton("pressIme"), pressKey("presskey"), 
+	pressBackUnconditionally("pressbackunconditionally"), pressImeActionButton("pressIme"), pressKey("presskey"), 
 	pressMenuKey("pressmenukey"), replaceText("replacetext"), scrollTo("scrollto"),swipeDown("swipedown"), 
 	swipeLeft("swipeleft"), swipeRight("swiperight"), swipeUp("swipeup"), typeText("typetext"), 
 	typeTextIntoFocusedView("typeintofocused");

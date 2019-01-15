@@ -1,7 +1,7 @@
 package it.enhancer.enhancer;
 
 public enum ViewMatchers {
-	withContentDescription("content-desc"), withId("id"), withText("text");
+	blank("-"), withContentDescription("content-desc"), withHint("text"), withId("id"), withText("text");
 
 	private String value;
 
