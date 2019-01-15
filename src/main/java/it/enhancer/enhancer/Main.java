@@ -1,10 +1,28 @@
 package it.enhancer.enhancer;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+
+import org.apache.commons.io.FilenameUtils;
+
 public class Main {
-	public static void main(String[] args) {
-		Enhancer en = new Enhancer("it.feio.android.omninotes");
-		en.generateEnhancedClassFrom("/home/oreste/eclipse-workspace/Enhancer/enhancer/files/BaseEspressoTest.java");
-		en.generateEnhancedClassFrom("/home/oreste/eclipse-workspace/Enhancer/enhancer/files/OriginalEspressoTest.java");
+	
+	
+	public static void main(String[] args) throws IOException {
+		
+		
+		Enhancer en;
+		
 		
 		en = new Enhancer("org.andydyer.androidtestdemo");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/Tests/abdyer/android-test-demo/_app_src_androidTest_java_org_andydyer_androidtestdemo_LoginActivityTest.java");

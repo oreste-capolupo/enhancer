@@ -2,6 +2,7 @@ package it.enhancer.enhancer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,7 +12,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Map.Entry;
+
+import org.apache.commons.io.FilenameUtils;
 
 public class Statistic {
 	public static Map<String, Integer> populateInitialMap() {
@@ -240,4 +244,45 @@ public class Statistic {
 
 		return result;
 	}
+	
+	
+	
+	
+	
+	//******
+	//function for the creations of statistics only given a set of test classes
+	//******
+	
+	public static void statisticsOnListOfFiles(String projectlist, String starting_folder) throws IOException {
+		
+		Enhancer en = new Enhancer("dummy.project"); //not required the project name: in this case the Enhanced class is not of interest;
+		ArrayList<String> filepaths = new ArrayList<String>();
+
+		
+		File logfile = new File ("log.txt");
+		FileWriter fr = new FileWriter(logfile, true);
+
+		
+		Scanner s = new Scanner(new File(projectlist));
+		ArrayList<String> list = new ArrayList<String>();
+		while (s.hasNext()){
+		    list.add(s.next());
+		}
+		s.close();
+		
+		
+		for (String filename: list) {
+						
+			try {
+			en.generateEnhancedClassFrom(starting_folder + FilenameUtils.separatorsToSystem(filename));
+			}
+			catch (Exception e) {
+				fr.write("Exception during examination of " + FilenameUtils.separatorsToSystem(filename) + "\n" + e.getMessage() + "\n\n\n\n");
+			}
+			
+		}
+
+		
+	}
+
 }
