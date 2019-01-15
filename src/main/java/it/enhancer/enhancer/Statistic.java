@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -588,6 +590,31 @@ public class Statistic {
 
 		return result;
 	}
+	
+	
+	//*****
+	//makes the csv
+	//*****
+	
+	public static void createCSV(String starting_folder, String list_files_path) throws IOException {
+		FileWriter result_csv = new FileWriter("stats_all.csv");
+		
+		result_csv.write(createCSVHeader());
+		
+		Scanner s = new Scanner(new File(list_files_path));
+		ArrayList<String> list_files = new ArrayList<String>();
+		while (s.hasNext()) {
+			list_files.add(s.next());
+		}
+		s.close();
+
+		
+		for (String filename : list_files) {
+
+			result_csv.write(createCSVLine(starting_folder, filename));
+
+		}
+	}
 
 	// ********
 	// Function that returns the header line of the csv resulting file with all the
@@ -657,6 +684,7 @@ public class Statistic {
 	// ******
 
 	public static void statisticsOnListOfFiles(String projectlist, String starting_folder) throws IOException {
+		
 
 		Enhancer en = new Enhancer("dummy.project"); // not required the project name: in this case the Enhanced class
 														// is not of interest;
@@ -682,9 +710,12 @@ public class Statistic {
 			try {
 				en.generateEnhancedClassFrom(starting_folder + FilenameUtils.separatorsToSystem(filename));
 			} catch (Exception e) {
-				fr.write("Exception during examination of " + FilenameUtils.separatorsToSystem(filename) + "\n"
-						+ e.getMessage() + "\n\n\n\n");
-				fr.write(e.getStackTrace().toString());
+				fr.write("Exception during examination of " + FilenameUtils.separatorsToSystem(filename) + "\n" + e.getMessage() + "\n\n\n\n");
+				
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				fr.write(sw.toString());
+
 			}
 
 		}
