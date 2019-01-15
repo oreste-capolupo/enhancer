@@ -163,7 +163,8 @@ public class Enhancer {
 			super.visit(b, arg);
 			String body = b.toString();
 
-			if (body.contains("onView") || body.contains("onData") || body.contains("intended") || body.contains("intending")) {
+			if (body.contains("onView") || body.contains("onData") || body.contains("intended")
+					|| body.contains("intending")) {
 
 				NodeList<Statement> nodes = b.getStatements();
 				firstTest = true;
@@ -193,7 +194,8 @@ public class Enhancer {
 			// gets onView or onData and all nested performs and checks but the last one
 			String name = j.getJSONObject("name").getString("identifier");
 
-			if (!name.equals("onView") && !name.equals("onData") && !name.equals("intended") && !name.equals("intending"))
+			if (!name.equals("onView") && !name.equals("onData") && !name.equals("intended")
+					&& !name.equals("intending") && !name.equals("perform") && !name.equals("check"))
 				operations.add(new Operation(name, ""));
 
 			parseJsonArgument(j, null, 0);
@@ -437,21 +439,49 @@ public class Enhancer {
 		int index = i;
 		String stmtString = s.toString();
 
-		if (stmtString.contains("onView") || stmtString.contains("onData") || stmtString.contains("intended") || stmtString.contains("intending")) {
+		if (stmtString.contains("onView") || stmtString.contains("onData") || stmtString.contains("intended")
+				|| stmtString.contains("intending")) {
 			JsonPrinter printer = new JsonPrinter(true);
 			String json = printer.output(s);
 
+			// TEST CASES like : ViewInteraction vi = onView(withId(...)).perform(...);
+			if (json.contains("VariableDeclarator")) {
+				String type = "type";
+				
+				// Substitute type with typeV to avoid key duplicate conflict
+				for (int j = -1; (j = json.indexOf(type, j + 1)) != -1; j++) {
+					String old = json.substring(j, j+26);
+				    if (old.equals("type\":\"VariableDeclarator\"")) {
+				    	json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" + json.substring(j+26);
+				    	break;
+				    }
+				}
+				
+			}
+				
 			operations = new ArrayList<Operation>();
 
 			try {
 				JSONObject j = new JSONObject(json);
-				// System.out.println(j.toString());
+				//System.out.println(j.toString());
 				j = j.getJSONObject("expression");
+				
+				String type = j.getString("type"); 
 
+				// vi = onView(withId(...)).perform(...);
+				if (type.equals("AssignExpr")) {
+					j = j.getJSONObject("value");
+					
+				// ViewInteraction vi = onView(withId(...)).perform(...);
+				} else if (type.equals("VariableDeclarationExpr")) {
+					j = j.getJSONArray("variables").getJSONObject(0).getJSONObject("initializer");
+				}
+				
 				parseJsonScope(j);
 
 				// gets the last check or perform
-				operations.add(new Operation(j.getJSONObject("name").getString("identifier"), ""));
+				// operations.add(new Operation(j.getJSONObject("name").getString("identifier"),
+				// ""));
 
 				parseJsonArgument(j, null, 0);
 
@@ -467,6 +497,11 @@ public class Enhancer {
 
 			Integer oldStatistic = statistic.get("closeSoftKeyboard");
 			statistic.put("closeSoftKeyboard", oldStatistic.intValue() + 1);
+		} else if (stmtString.contains("pressBack();")) {
+			// TODO: enhance interaction
+
+			Integer oldStatistic = statistic.get("pressBack");
+			statistic.put("pressBack", oldStatistic.intValue() + 1);
 		}
 		// return the next index if the statement is not a test
 		return ++index;
@@ -478,10 +513,11 @@ public class Enhancer {
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
 		Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
 		Statement date = JavaParser.parseStatement("now = new Date();");
-		Statement firstTestActivity = JavaParser.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
+		Statement firstTestActivity = JavaParser
+				.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
 		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
-		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools"
-				+ ");");
+		Statement screenCapture = JavaParser
+				.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools" + ");");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
@@ -504,56 +540,56 @@ public class Enhancer {
 				 * " is not supported or is not an Espresso command").printStackTrace(); }
 				 */
 
-				if (!interactionType.equals("perform") && !interactionType.equals("check")) {
+				// if (!interactionType.equals("perform") && !interactionType.equals("check")) {
 
-					if (interactionType.isEmpty()) {
-						interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
+				if (interactionType.isEmpty()) {
+					interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
 
-						if (searchType.isEmpty() || interactionType.isEmpty()) {
-							b.addStatement(i, st);
-							break;
-						}
-
-						// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
-						// now.
-						if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
-							interactionType = "check";
-						else {
-							b.addStatement(i, st);
-							break;
-						}
-
+					if (searchType.isEmpty() || interactionType.isEmpty()) {
+						b.addStatement(i, st);
+						break;
 					}
 
-					LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
-
-					if (firstTest) {
-						firstTest = false;
-						b.addStatement(i, instrumentation);
-						b.addStatement(++i, device);
-						b.addStatement(++i, firstTestDate);
-						b.addStatement(++i, firstTestActivity);
-					} else if (j == 3 && interactionType.equals("check") || j == 2) {
-						b.addStatement(i, date);
-						b.addStatement(++i, activity);
-
-						// this makes it work on test cases with multiple interactions avoiding the try
-						// statements to stay to the bottom
-					} else {
-						b.addStatement(++i, date);
-						b.addStatement(++i, activity);
+					// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
+					// now.
+					if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
+						interactionType = "check";
+					else {
+						b.addStatement(i, st);
+						break;
 					}
 
-					i = addInteractionToCu(interactionType, log, i, b);
-
-					b.addStatement(++i, screenCapture);
-					b.addStatement(++i, dumpScreen);
-					b.addStatement(++i, st);
-					b.addStatement(++i, tryStmt);
 				}
 
+				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
+
+				if (firstTest) {
+					firstTest = false;
+					b.addStatement(i, instrumentation);
+					b.addStatement(++i, device);
+					b.addStatement(++i, firstTestDate);
+					b.addStatement(++i, firstTestActivity);
+				} else if (j == 2 && interactionType.equals("check") || j == 1) {
+					b.addStatement(i, date);
+					b.addStatement(++i, activity);
+
+					// this makes it work on test cases with multiple interactions avoiding the try
+					// statements to stay to the bottom
+				} else {
+					b.addStatement(++i, date);
+					b.addStatement(++i, activity);
+				}
+
+				i = addInteractionToCu(interactionType, log, i, b);
+
+				b.addStatement(++i, screenCapture);
+				b.addStatement(++i, dumpScreen);
+				b.addStatement(++i, st);
+				b.addStatement(++i, tryStmt);
 			}
+
 		}
+		// }
 
 		return ++i;
 	}
@@ -660,7 +696,8 @@ public class Enhancer {
 		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
-		Statement currDisp = JavaParser.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);");
+		Statement currDisp = JavaParser
+				.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);");
 
 		String stmt = "TOGGLETools.LogInteraction(now, \"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
 		Statement log = JavaParser.parseStatement(stmt);

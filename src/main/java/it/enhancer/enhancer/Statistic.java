@@ -131,8 +131,8 @@ public class Statistic {
 		statistic.put("noOverlaps",0);
 		statistic.put("not",0);
 		statistic.put("open",0);
-		statistic.put("openActionBarOverflowMenu", 0);
-		statistic.put("openContextualActionModeOverflowMenu", 0);
+		statistic.put("openActionBarOverflowOrOptionsMenu",0);
+		statistic.put("openContextualActionModeOverflowMenu",0);
 		statistic.put("openDrawer",0);
 		statistic.put("openLink",0);
 		statistic.put("openLinkWithText",0);

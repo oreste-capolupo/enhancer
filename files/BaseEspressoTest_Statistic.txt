@@ -1,11 +1,11 @@
-withId:10
+withId:11
 pressKey:5
 click:3
+longClick:3
+isDisplayed:2
+matches:2
 withContentDescription:2
-isDisplayed:1
-matches:1
 typeText:1
-longClick:1
 replaceText:1
 typeTextIntoFocusedView:1
 withText:1
@@ -124,6 +124,7 @@ withDecorView:0
 assertThat:0
 isChecked:0
 isInternal:0
+openContextualActionModeOverflowMenu:0
 isJavascriptEnabled:0
 actionOnItemAtPosition:0
 hasDescendant:0
@@ -155,6 +156,7 @@ hasEllipsizedText:0
 hasData:0
 hasHost:0
 withClassName:0
+openActionBarOverflowOrOptionsMenu:0
 pressMenuKey:0
 swipeRight:0
 withTitle:0

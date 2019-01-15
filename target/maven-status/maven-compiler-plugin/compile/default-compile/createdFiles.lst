@@ -1,4 +1,5 @@
 it/enhancer/enhancer/Enhancer.class
+it/enhancer/enhancer/EspressoCommands.class
 it/enhancer/enhancer/ViewAssertions.class
 it/enhancer/enhancer/ViewMatchers.class
 it/enhancer/enhancer/Enhancer$1.class
