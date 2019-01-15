@@ -113,8 +113,6 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     @Test
     public void testTest() {
 
-        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
-
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 
 

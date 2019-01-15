@@ -20,6 +20,7 @@ withRowFloat:0
 withSpinnerText:0
 clearGlobalAssertions:0
 openLinkWithText:0
+withDrawableId:0
 withRowLong:0
 repeatedlyUntil:0
 withRowInt:0

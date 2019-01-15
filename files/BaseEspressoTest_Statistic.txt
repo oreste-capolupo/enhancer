@@ -1,13 +1,16 @@
-withId:11
+withId:12
 pressKey:5
 click:3
+matches:3
 longClick:3
 isDisplayed:2
-matches:2
 withContentDescription:2
+withDrawableId:1
+isCompletelyDisplayed:1
 typeText:1
 replaceText:1
 typeTextIntoFocusedView:1
+allOf:1
 withText:1
 hasClassName:0
 isCompletelyRightOf:0
@@ -35,7 +38,6 @@ isDescendantOfA:0
 isTopAlignedWith:0
 clearText:0
 hasContentDescription:0
-isCompletelyDisplayed:0
 hasValue:0
 is:0
 hasMultilineTest:0
@@ -140,7 +142,6 @@ navigateTo:0
 swipeLeft:0
 closeSoftKeyboard:0
 hasMyPackageName:0
-allOf:0
 openDrawer:0
 not:0
 isDialog:0

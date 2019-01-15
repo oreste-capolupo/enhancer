@@ -290,7 +290,10 @@ public class Enhancer {
 				// if the command is an assertion then "order" the list
 				if (!ViewAssertions.getSearchType(name).equals("") || name.equals("allOf") || name.equals("anyOf")) {
 					int numberOfArguments = a.getJSONObject(i).getJSONArray("arguments").length();
-					operations.add(operations.size() - numberOfArguments, new Operation(name, parametersValue));
+					if(operations.size() >= numberOfArguments)
+						operations.add(operations.size() - numberOfArguments, new Operation(name, parametersValue));
+					else
+						operations.add(new Operation(name, parametersValue));
 				} else
 					operations.add(new Operation(name, parametersValue));
 
@@ -447,36 +450,36 @@ public class Enhancer {
 			// TEST CASES like : ViewInteraction vi = onView(withId(...)).perform(...);
 			if (json.contains("VariableDeclarator")) {
 				String type = "type";
-				
+
 				// Substitute type with typeV to avoid key duplicate conflict
 				for (int j = -1; (j = json.indexOf(type, j + 1)) != -1; j++) {
-					String old = json.substring(j, j+26);
-				    if (old.equals("type\":\"VariableDeclarator\"")) {
-				    	json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" + json.substring(j+26);
-				    	break;
-				    }
+					String old = json.substring(j, j + 26);
+					if (old.equals("type\":\"VariableDeclarator\"")) {
+						json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" + json.substring(j + 26);
+						break;
+					}
 				}
-				
+
 			}
-				
+
 			operations = new ArrayList<Operation>();
 
 			try {
 				JSONObject j = new JSONObject(json);
-				//System.out.println(j.toString());
+				// System.out.println(j.toString());
 				j = j.getJSONObject("expression");
-				
-				String type = j.getString("type"); 
+
+				String type = j.getString("type");
 
 				// vi = onView(withId(...)).perform(...);
 				if (type.equals("AssignExpr")) {
 					j = j.getJSONObject("value");
-					
-				// ViewInteraction vi = onView(withId(...)).perform(...);
+
+					// ViewInteraction vi = onView(withId(...)).perform(...);
 				} else if (type.equals("VariableDeclarationExpr")) {
 					j = j.getJSONArray("variables").getJSONObject(0).getJSONObject("initializer");
 				}
-				
+
 				parseJsonScope(j);
 
 				// gets the last check or perform
@@ -523,8 +526,12 @@ public class Enhancer {
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
 
 		// this works on test cases with one matcher
-		String searchType = ViewMatchers.getSearchType(operations.get(0).getName());
-		String searchKw = operations.get(0).getParameter();
+		String searchType = "";
+		String searchKw = "";
+		if (operations.size() > 0) {
+			searchType = ViewMatchers.getSearchType(operations.get(0).getName());
+			searchKw = operations.get(0).getParameter();
+		}
 
 		if (!searchType.isEmpty()) {
 			String stmtString = s.toString();
@@ -701,6 +708,9 @@ public class Enhancer {
 
 		String stmt = "TOGGLETools.LogInteraction(now, \"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
 		Statement log = JavaParser.parseStatement(stmt);
+
+		// if (i > b.getStatements().size())
+		// --i;
 
 		b.addStatement(i, date);
 		b.addStatement(++i, activity);

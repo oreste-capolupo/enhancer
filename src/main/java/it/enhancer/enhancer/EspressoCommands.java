@@ -2,7 +2,7 @@ package it.enhancer.enhancer;
 
 public class EspressoCommands {
 	private static String[] commands = { "actionOnHolderItem", "actionOnItem", "actionOnItemAtPosition",
-			"actionWithAssertions", "addGlobalAssertion", "allOf", "anyIntent", "anyOf", "assertThat",
+			"actionWithAssertions", "addGlobalAssertion", "allOf", "anyIntent", "anyOf", "assertThat", "childAtPosition", 
 			"clearGlobalAssertions", "clearText", "click", "clickBetweenToTitles", "close", "closeDrawer",
 			"closeSoftKeyboard", "doesNotExist", "doubleClick", "endsWith", "hasAction", "hasBackground",
 			"hasCategories", "hasChildCount", "hasClassName", "hasComponent", "hasContentDescription", "hasData",
