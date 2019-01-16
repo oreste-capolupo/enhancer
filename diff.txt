@@ -1,0 +1,117 @@
+diff --git a/src/main/java/it/enhancer/enhancer/Enhancer.java b/src/main/java/it/enhancer/enhancer/Enhancer.java
+index 074c635..b7e1166 100644
+--- a/src/main/java/it/enhancer/enhancer/Enhancer.java
++++ b/src/main/java/it/enhancer/enhancer/Enhancer.java
+@@ -443,7 +443,7 @@ public class Enhancer {
+ 		String stmtString = s.toString();
+ 
+ 		operations = new ArrayList<Operation>();
+-		
++
+ 		if (stmtString.contains("onView") || stmtString.contains("onData") || stmtString.contains("intended")
+ 				|| stmtString.contains("intending")) {
+ 			JsonPrinter printer = new JsonPrinter(true);
+@@ -466,7 +466,7 @@ public class Enhancer {
+ 
+ 			try {
+ 				JSONObject j = new JSONObject(json);
+-				// System.out.println(j.toString());
++//				 System.out.println(j.toString());
+ 				j = j.getJSONObject("expression");
+ 
+ 				String type = j.getString("type");
+@@ -512,13 +512,13 @@ public class Enhancer {
+ 			if (!op.isEmpty()) {
+ 				Integer oldStatistic = statistic.get(op);
+ 				statistic.put(op, oldStatistic.intValue() + 1);
+-				
++
+ 				// enhance interaction
+ 				operations.add(new Operation("blank", "-"));
+ 				operations.add(new Operation(op, ""));
+-				return enhanceMethod(b,  s, i);
++				return enhanceMethod(b, s, i);
+ 			}
+-				
++
+ 		}
+ 		// return the next index if the statement is not a test
+ 		return ++index;
+@@ -551,7 +551,8 @@ public class Enhancer {
+ 			String stmtString = s.toString();
+ 			Statement st = JavaParser.parseStatement(stmtString);
+ 
+-			b.remove(s);
++			if (operations.size() > 1)
++				b.remove(s);
+ 
+ 			for (int j = 1; j < operations.size(); j++) {
+ 				String interactionType = ViewActions.getSearchType(operations.get(j).getName());
+@@ -656,23 +657,54 @@ public class Enhancer {
+ 			// the 'i' in the variable name is used to make it unique in case we have
+ 			// multiple interactions of the same type
+ 			// substring removes the " from the string
+-			stmt = "int textToBeReplacedLength" + i + " = ((TextView) activityTOGGLETools.findViewById(R.id."
+-					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
+-			b.addStatement(++i, JavaParser.parseStatement(stmt));
+ 
+-			l = JavaParser.parseStatement(
+-					"TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+-							+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
+-							+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
++			// TODO: handle different behaviors based on the type of parameter
++			if (log.getSearchKw().charAt(0) == '"') {
++				log.setSearchKw(log.getSearchKw().substring(1, log.getSearchKw().length() - 1));
++
++				stmt = "int textToBeReplacedLength" + i + " = ((TextView) activityTOGGLETools.findViewById(R.id."
++						+ log.getSearchKw() + ")).getText().length();";
++
++				b.addStatement(++i, JavaParser.parseStatement(stmt));
++
++				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
++						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
++						+ "\", String.valueOf(textToBeReplacedLength" + (i - 1) + ")+\";\"+"
++						+ log.getInteractionParams() + ");");
++			} else {
++				stmt = "int textToBeReplacedLength" + i + " = ((TextView) activityTOGGLETools.findViewById("
++						+ log.getSearchKw() + ")).getText().length();";
++
++				b.addStatement(++i, JavaParser.parseStatement(stmt));
++
++				l = JavaParser.parseStatement(
++						"TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
++								+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
++								+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
++			}
+ 			break;
+ 		case "cleartext":
+-			stmt = "int textToBeClearedLength" + i + " = ((TextView) activityTOGGLETools.findViewById(R.id."
+-					+ log.getSearchKw().substring(1, log.getSearchKw().length() - 1) + ")).getText().length();";
+-			b.addStatement(++i, JavaParser.parseStatement(stmt));
+ 
+-			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
+-					+ log.getSearchKw() + "," + "\"" + log.getInteractionType()
+-					+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
++			// TODO: handle different behaviors based on the type of parameter
++			if (log.getSearchKw().charAt(0) == '"') {
++				log.setSearchKw(log.getSearchKw().substring(1, log.getSearchKw().length() - 1));
++
++				stmt = "int textToBeClearedLength" + i + " = ((TextView) activityTOGGLETools.findViewById(R.id."
++						+ log.getSearchKw() + ")).getText().length();";
++				b.addStatement(++i, JavaParser.parseStatement(stmt));
++
++				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
++						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
++						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
++			} else {
++				stmt = "int textToBeClearedLength" + i + " = ((TextView) activityTOGGLETools.findViewById("
++						+ log.getSearchKw() + ")).getText().length();";
++				b.addStatement(++i, JavaParser.parseStatement(stmt));
++
++				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
++						+ log.getSearchKw() + "," + "\"" + log.getInteractionType()
++						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
++			}
+ 			break;
+ 		case "presskey":
+ 			Statement val = JavaParser.parseStatement(
