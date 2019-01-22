@@ -211,6 +211,8 @@ public class Enhancer {
 				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
 			else {
 				parseJsonArgument(j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
+				parseLeftInArgument((JSONObject) a.get(0));
+				parseRightInArgument((JSONObject) a.get(0));
 				parseScopeInArgument((JSONObject) a.get(0));
 			}
 
@@ -218,6 +220,34 @@ public class Enhancer {
 			// only the first part ES: obj. or R.id.
 			methodOverloading(a, i);
 		} catch (JSONException e) {
+			// TODO: handle exception
+		}
+	}
+
+	private void parseLeftInArgument(JSONObject j) {
+		try {
+			parseLeftInArgument(j = j.getJSONObject("left"));
+			parseJsonArgument(j, null, 0);
+			parseScopeInArgument(j);
+
+			// call methodOverloading(...);
+			methodOverloading(new JSONArray("[" + j + "]"), 0);
+
+			parseRightInArgument(j);
+		} catch (Exception e) {
+
+		}
+	}
+
+	private void parseRightInArgument(JSONObject j) {
+		try {
+			parseRightInArgument(j = j.getJSONObject("right"));
+			parseJsonArgument(j, null, 0);
+			parseScopeInArgument(j);
+
+			// call methodOverloading(...);
+			// methodOverloading(new JSONArray("[" + j + "]"), 0);
+		} catch (Exception e) {
 			// TODO: handle exception
 		}
 	}
@@ -258,7 +288,7 @@ public class Enhancer {
 			try {
 				parseScopeInArgument(j.getJSONObject("name"));
 			} catch (JSONException e2) {
-				// TODO: handle exception
+				// caught exception
 			}
 		}
 	}
@@ -266,7 +296,9 @@ public class Enhancer {
 	private void methodOverloading(JSONArray a, int i) {
 		try {
 			String type = a.getJSONObject(i).getString("type");
-			String name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
+			String name = "";
+
+			name = a.getJSONObject(i).getJSONObject("name").getString("identifier");
 
 			if (!field.toString().isEmpty() && !field.toString().startsWith("R.id.")
 			// && !field.toString().startsWith("ViewMatchers.") &&
@@ -278,7 +310,7 @@ public class Enhancer {
 
 			String parametersValue = parameters.toString();
 
-			if (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)) {
+			if ((type.equals("MethodCallExpr")) && isNotAnEspressoCommand(name)) {
 
 				if (parametersValue.isEmpty())
 					parameters.append(name + "()");
@@ -339,11 +371,33 @@ public class Enhancer {
 	private void methodParameters(JSONArray a, int j) {
 		try {
 			String type = a.getJSONObject(j).getString("type");
-			String value = a.getJSONObject(j).getString("value");
+			String value = "";
+
+			if (type.equals("BinaryExpr"))
+				value = a.getJSONObject(j).getJSONObject("right").getString("value");
+			else
+				value = a.getJSONObject(j).getString("value");
+
 			String parametersValue = parameters.toString();
 
-			if (field.toString().isEmpty()) {
-				if (type.equals("StringLiteralExpr")) {
+			if (value.contains("\n")) {
+				StringBuffer v = new StringBuffer(value);
+				int index = v.indexOf("\n");
+				while (index >= 0) {
+					v.replace(index, index + 1, "\\n");
+					index = v.indexOf("\n", index + 2);
+				}
+				value = v.toString();
+			}
+
+			// if (!parameters.toString().contains(value) || type.equals("BinaryExpr")) {
+			if (field.toString().isEmpty() || type.equals("BinaryExpr")) {
+				if (type.equals("BinaryExpr")) {
+					if (parametersValue.isEmpty())
+						parameters.append("\"" + value + "\"");
+					else
+						parameters.append("+" + "\"" + value + "\"");
+				} else if (type.equals("StringLiteralExpr")) {
 					if (parametersValue.isEmpty())
 						parameters.append("\"" + value + "\"");
 					else
@@ -360,6 +414,7 @@ public class Enhancer {
 				else
 					field.append(value + ",");
 			}
+			// }
 
 			methodParameters(a, ++j);
 		} catch (JSONException e) {
@@ -374,6 +429,8 @@ public class Enhancer {
 						index = a.getJSONObject(j).getJSONObject("index").getJSONObject("name").getString("identifier");
 					else
 						index = a.getJSONObject(j).getJSONObject("index").getString("value");
+				} else if (type.equals("BinaryExpr")) {
+					name = a.getJSONObject(j).getJSONObject("right").getJSONObject("name").getString("identifier");
 				} else
 					name = a.getJSONObject(j).getJSONObject("name").getString("identifier");
 
@@ -387,11 +444,57 @@ public class Enhancer {
 
 				String parametersValue = parameters.toString();
 
-				if (!type.equals("MethodCallExpr") || (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)
-						&& !parameters.toString().contains(name + "("))) {
+				if (type.equals("BinaryExpr") || !type.equals("MethodCallExpr") && !parameters.toString().contains(name)
+						|| (type.equals("MethodCallExpr") && isNotAnEspressoCommand(name)
+								&& !parameters.toString().contains(name))) {
 
-					// field access
-					if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id.")) {
+					if (type.equals("BinaryExpr")) {
+						type = a.getJSONObject(j).getString("type");
+
+						if (name.endsWith(","))
+							name = name.substring(0, name.length() - 1);
+						if (type.equals("StringLiteralExpr"))
+							name = "\"" + name + "\"";
+						if (parametersValue.isEmpty())
+							parameters.append(name);
+						else {
+							type = a.getJSONObject(j).getJSONObject("right").getString("type");
+							/*try {
+								type = a.getJSONObject(j).getJSONObject("left").getJSONObject("right").getString("type");
+								if (!field.toString().isEmpty()) {
+									int dotIndex = field.lastIndexOf(".");
+									field = new StringBuilder(field.subSequence(0, dotIndex + 1));
+									
+									int plusIndex = parameters.lastIndexOf("+");
+									parameters.replace(plusIndex + 1, plusIndex + 1, field.toString());
+									
+									int commaIndex = -1;
+									if (type.equals("MethodCallExpr") && (commaIndex = parameters.lastIndexOf(",")) != -1) {
+										int numberOfArguments = a.getJSONObject(j).getJSONObject("left").getJSONObject("right")
+												.getJSONArray("arguments").length();
+										for (int w = 0; w < numberOfArguments - 1; w++)
+											commaIndex = parameters.substring(0, commaIndex).lastIndexOf(",");
+										parameters.replace(commaIndex, commaIndex + 1, "(");
+										parameters.append(")");
+									}
+								}
+								
+							} catch (Exception e2) {*/
+								int commaIndex = -1;
+								if (type.equals("MethodCallExpr") && (commaIndex = parameters.lastIndexOf(",")) != -1) {
+									int numberOfArguments = a.getJSONObject(j).getJSONObject("right")
+											.getJSONArray("arguments").length();
+									for (int w = 0; w < numberOfArguments - 1; w++)
+										commaIndex = parametersValue.substring(0, commaIndex).lastIndexOf(",");
+									parameters.replace(commaIndex, commaIndex + 1, "+" + name + "(");
+									parameters.append(")");
+								} else
+									parameters.append("+" + name);
+							//}
+							
+						}
+						// field access
+					} else if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id.")) {
 						if (parametersValue.isEmpty())
 							parameters.append("\"" + name + "\"");
 						else
@@ -466,7 +569,7 @@ public class Enhancer {
 
 			try {
 				JSONObject j = new JSONObject(json);
-//				 System.out.println(j.toString());
+				// System.out.println(j.toString());
 				j = j.getJSONObject("expression");
 
 				String type = j.getString("type");
@@ -650,6 +753,9 @@ public class Enhancer {
 		Statement l = null;
 		String stmt = "";
 
+		if (log.getInteractionType().isEmpty())
+			log.setInteractionType("");
+
 		// default handles the normal behavior of the parameters. ES: click(),
 		// typeText("TextToBeReplaced")
 		switch (interactionType) {
@@ -701,8 +807,8 @@ public class Enhancer {
 						+ log.getSearchKw() + ")).getText().length();";
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + ","
-						+ log.getSearchKw() + "," + "\"" + log.getInteractionType()
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType()
 						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 			}
 			break;
