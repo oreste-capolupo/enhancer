@@ -155,13 +155,16 @@ public class Enhancer {
 
 	private class MethodVisitor extends ModifierVisitor<Void> {
 		@Override
-		public BlockStmt visit(BlockStmt b, Void arg) {
+		public MethodDeclaration visit(MethodDeclaration m, Void arg) {
 			/*
 			 * here you can access the attributes of the method. this method will be called
 			 * for all methods in this CompilationUnit, including inner class methods
 			 */
-			super.visit(b, arg);
+			super.visit(m, arg);
+			BlockStmt b = m.getBody().get();
+			
 			String body = b.toString();
+			String methodName = m.getNameAsString();
 
 			if (body.contains("onView") || body.contains("onData") || body.contains("intended")
 					|| body.contains("intending")) {
@@ -175,14 +178,14 @@ public class Enhancer {
 				int i = 0;
 				while (i < nodes.size())
 					// gets the new index because the method has been enhanced
-					i = parseStatement(b, nodes.get(i), i);
+					i = parseStatement(b, methodName, nodes.get(i), i);
 
 				// add fullcheck at the bottom of the method
 				if (!firstTest)
-					addFullCheck(b, i);
+					addFullCheck(b, methodName, i);
 			}
 
-			return b;
+			return m;
 		}
 
 	}
@@ -541,7 +544,7 @@ public class Enhancer {
 		}
 	}
 
-	private int parseStatement(BlockStmt b, Statement s, int i) {
+	private int parseStatement(BlockStmt b, String methodName, Statement s, int i) {
 		int index = i;
 		String stmtString = s.toString();
 
@@ -594,7 +597,7 @@ public class Enhancer {
 				System.out.println(operations.toString());
 
 				// returns the next index after enhancing the method
-				return enhanceMethod(b, s, i);
+				return enhanceMethod(b, methodName, s, i);
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
 			}
@@ -619,7 +622,7 @@ public class Enhancer {
 				// enhance interaction
 				operations.add(new Operation("blank", "-"));
 				operations.add(new Operation(op, ""));
-				return enhanceMethod(b, s, i);
+				return enhanceMethod(b, methodName, s, i);
 			}
 
 		}
@@ -627,7 +630,7 @@ public class Enhancer {
 		return ++index;
 	}
 
-	private int enhanceMethod(BlockStmt b, Statement s, int i) {
+	private int enhanceMethod(BlockStmt b, String methodName, Statement s, int i) {
 		Statement instrumentation = JavaParser
 				.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
@@ -686,7 +689,7 @@ public class Enhancer {
 
 				}
 
-				LogCat log = new LogCat(searchType, searchKw, interactionType, interactionParams);
+				LogCat log = new LogCat(methodName, searchType, searchKw, interactionType, interactionParams);
 
 				if (firstTest) {
 					firstTest = false;
@@ -773,7 +776,7 @@ public class Enhancer {
 
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + log.getMethodName() + ", " + "\"" + log.getSearchType() + "\""
 						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
 						+ "\", String.valueOf(textToBeReplacedLength" + (i - 1) + ")+\";\"+"
 						+ log.getInteractionParams() + ");");
@@ -784,7 +787,7 @@ public class Enhancer {
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
 				l = JavaParser.parseStatement(
-						"TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+						"TOGGLETools.LogInteraction(now, "+ log.getMethodName() + "," + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
 								+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
 								+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
 			}
@@ -799,7 +802,7 @@ public class Enhancer {
 						+ log.getSearchKw() + ")).getText().length();";
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now,"+ log.getMethodName() + "," + "\"" + log.getSearchType() + "\""
 						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
 						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 			} else {
@@ -807,7 +810,7 @@ public class Enhancer {
 						+ log.getSearchKw() + ")).getText().length();";
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + log.getMethodName() + "," + "\"" + log.getSearchType() + "\""
 						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType()
 						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 			}
@@ -826,7 +829,7 @@ public class Enhancer {
 			b.addStatement(++i, keyArray);
 			b.addStatement(++i, ifStmt);
 
-			stmt = "TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+			stmt = "TOGGLETools.LogInteraction(now,"+ log.getMethodName() + "," + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
 					+ "," + "\"" + log.getInteractionType() + "\"" + ", espressoKeyVal" + (i - 3) + ");";
 
 			l = JavaParser.parseStatement(stmt);
@@ -838,14 +841,14 @@ public class Enhancer {
 		case "openactionbaroverfloworoptionsmenu":
 		case "opencontextualactionmodeoverflowmenu":
 			l = JavaParser.parseStatement(
-					"TOGGLETools.LogInteraction(now, \"-\", \"-\"," + "\"" + log.getInteractionType() + "\"" + ");");
+					"TOGGLETools.LogInteraction(now, "+ log.getMethodName() +"," + "\"-\", \"-\"," + "\"" + log.getInteractionType() + "\"" + ");");
 			break;
 		default:
 			if (log.getInteractionParams().isEmpty())
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + log.getMethodName() + "," + "\"" + log.getSearchType() + "\""
 						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ");");
 			else
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + log.getMethodName() + "," + "\"" + log.getSearchType() + "\""
 						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ","
 						+ log.getInteractionParams() + ");");
 			break;
@@ -857,7 +860,7 @@ public class Enhancer {
 		return i;
 	}
 
-	private void addFullCheck(BlockStmt b, int i) {
+	private void addFullCheck(BlockStmt b, String methodName, int i) {
 		Statement date = JavaParser.parseStatement("now = new Date();");
 		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
 		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);");
@@ -866,7 +869,7 @@ public class Enhancer {
 		Statement currDisp = JavaParser
 				.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);");
 
-		String stmt = "TOGGLETools.LogInteraction(now, \"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
+		String stmt = "TOGGLETools.LogInteraction(now," + methodName + ",\"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
 		Statement log = JavaParser.parseStatement(stmt);
 
 		// if (i > b.getStatements().size())
