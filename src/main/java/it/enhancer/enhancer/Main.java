@@ -8,6 +8,8 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		Enhancer en = new Enhancer("it.feio.android.omninotes");
+		en.generateEnhancedClassFrom("/home/oreste/Scaricati/ThePassEditActivity.java");
+		en.generateEnhancedClassFrom("/home/oreste/Scaricati/passandroid1.java");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/only_test_classes/AntennaPod/AntennaPod/AntennaPod_AntennaPod_app_src_androidTest_java_de_test_antennapod_ui_PreferencesTest.java.java");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/only_test_classes/aragaer/yama_android/aragaer_yama_android_src_androidTest_java_com_aragaer_yama_ListActivityTest.java");
 		en.generateEnhancedClassFrom("/home/oreste/Scaricati/only_test_classes/Leonis0813/adhafera/Leonis0813_adhafera_app_src_androidTest_java_com_leonis_android_adhafera_MainActivityTest.java.java");
