@@ -14,6 +14,7 @@ import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
@@ -55,6 +56,8 @@ public class Enhancer {
 			addImportsToCompilationUnit();
 
 			addPrivateField();
+			
+			changeConstructorsName();
 
 			addActivityInstanceMethod();
 
@@ -93,10 +96,18 @@ public class Enhancer {
 	private void addPrivateField() {
 		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
 		ci.setName(ci.getName() + "Enhanced");
-
+		
 		if (isNotInMembersList(ci, "currentActivity")) {
 			BodyDeclaration<?> field = JavaParser.parseBodyDeclaration("private Activity currentActivity;");
 			ci.getMembers().add(0, field);
+		}
+	}
+	
+	private void changeConstructorsName() {
+		ClassOrInterfaceDeclaration ci = Navigator.findNodeOfGivenClass(cu, ClassOrInterfaceDeclaration.class);
+		List<ConstructorDeclaration> cd = ci.getConstructors();
+		for (ConstructorDeclaration c : cd) {
+			c.setName(c.getName() + "Enhanced");
 		}
 	}
 
@@ -161,6 +172,8 @@ public class Enhancer {
 			 * for all methods in this CompilationUnit, including inner class methods
 			 */
 			super.visit(m, arg);
+			
+			
 			BlockStmt b = m.getBody().get();
 			
 			String body = b.toString();
