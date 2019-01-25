@@ -123,6 +123,7 @@ public class Enhancer {
 		cu.addImport("android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
 		cu.addImport("android.support.test.uiautomator.UiDevice", false, false);
 		cu.addImport("android.graphics.Rect", false, false);
+		cu.addImport("java.util.concurrent.FutureTask", false, false);
 	}
 
 	private void addActivityInstanceMethod() {
@@ -883,14 +884,15 @@ public class Enhancer {
 	private void addFullCheck(BlockStmt b, String methodName, int i) {
 		Statement date = JavaParser.parseStatement("now = new Date();");
 		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
+		Statement captureTaskValue = JavaParser.parseStatement("capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
 		TryStmt screenCapture = (TryStmt) JavaParser
-				.parseStatement("try { runOnUiThread(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools)); } catch (Throwable t) { t.printStackTrace(); }");
+				.parseStatement("try { runOnUiThread(capture_task); res_task = capture_task.get();} catch (Throwable t) { t.printStackTrace(); }");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
 		Statement currDisp = JavaParser
 				.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);");
 
-		String stmt = "TOGGLETools.LogInteraction(now," + "\"" + methodName + "\",\"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);";
+		String stmt = "if (res_task) {TOGGLETools.LogInteraction(now," + "\"" + methodName + "\",\"-\", \"-\", \"fullcheck\", currdisp.bottom+\";\"+currdisp.top+\";\"+currdisp.right+\";\"+currdisp.left);} else { TOGGLETools.LogInteraction(now, " + "\"" + methodName + "\""+ ", \"-\", \"-\", \"dialogescape\");}";
 		Statement log = JavaParser.parseStatement(stmt);
 
 		// if (i > b.getStatements().size())
@@ -898,9 +900,10 @@ public class Enhancer {
 
 		b.addStatement(i, date);
 		b.addStatement(++i, activity);
+		b.addStatement(++i, captureTaskValue);
 		b.addStatement(++i, currDisp);
-		b.addStatement(++i, log);
 		b.addStatement(++i, screenCapture);
+		b.addStatement(++i, log);
 		b.addStatement(++i, dumpScreen);
 	}
 
