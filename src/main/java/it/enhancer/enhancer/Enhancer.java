@@ -652,8 +652,8 @@ public class Enhancer {
 		Statement firstTestActivity = JavaParser
 				.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
 		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
-		Statement screenCapture = JavaParser
-				.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools" + ");");
+		TryStmt screenCapture = (TryStmt) JavaParser
+				.parseStatement("try { runOnUiThread(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools)); } catch (Throwable t) { t.printStackTrace(); }");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
@@ -876,7 +876,8 @@ public class Enhancer {
 	private void addFullCheck(BlockStmt b, String methodName, int i) {
 		Statement date = JavaParser.parseStatement("now = new Date();");
 		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
-		Statement screenCapture = JavaParser.parseStatement("TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);");
+		TryStmt screenCapture = (TryStmt) JavaParser
+				.parseStatement("try { runOnUiThread(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools)); } catch (Throwable t) { t.printStackTrace(); }");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
 		Statement currDisp = JavaParser
