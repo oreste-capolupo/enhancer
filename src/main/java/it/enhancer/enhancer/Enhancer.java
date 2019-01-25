@@ -644,6 +644,8 @@ public class Enhancer {
 	}
 
 	private int enhanceMethod(BlockStmt b, String methodName, Statement s, int i) {
+		Statement captureTask = JavaParser.parseStatement("FutureTask<Boolean> capture_task = null;");
+		Statement resTask = JavaParser.parseStatement("boolean res_task = false;");
 		Statement instrumentation = JavaParser
 				.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
@@ -652,8 +654,9 @@ public class Enhancer {
 		Statement firstTestActivity = JavaParser
 				.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
 		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
+		Statement captureTaskValue = JavaParser.parseStatement("capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
 		TryStmt screenCapture = (TryStmt) JavaParser
-				.parseStatement("try { runOnUiThread(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools)); } catch (Throwable t) { t.printStackTrace(); }");
+				.parseStatement("try { runOnUiThread(capture_task); res_task = capture_task.get();} catch (Throwable t) { t.printStackTrace(); }");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
@@ -706,7 +709,9 @@ public class Enhancer {
 
 				if (firstTest) {
 					firstTest = false;
-					b.addStatement(i, instrumentation);
+					b.addStatement(i, captureTask);
+					b.addStatement(++i, resTask);
+					b.addStatement(++i, instrumentation);
 					b.addStatement(++i, device);
 					b.addStatement(++i, firstTestDate);
 					b.addStatement(++i, firstTestActivity);
@@ -720,10 +725,12 @@ public class Enhancer {
 					b.addStatement(++i, date);
 					b.addStatement(++i, activity);
 				}
-
-				i = addInteractionToCu(interactionType, log, i, b);
-
+				
+				b.addStatement(++i, captureTaskValue);
 				b.addStatement(++i, screenCapture);
+				
+				i = addInteractionToCu(interactionType, log, i, b);
+				
 				b.addStatement(++i, dumpScreen);
 				b.addStatement(++i, st);
 				b.addStatement(++i, tryStmt);
@@ -789,10 +796,10 @@ public class Enhancer {
 
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\", " + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("if (res_task) {TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\", " + "\"" + log.getSearchType() + "\""
 						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
 						+ "\", String.valueOf(textToBeReplacedLength" + (i - 1) + ")+\";\"+"
-						+ log.getInteractionParams() + ");");
+						+ log.getInteractionParams() + ");} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}");
 			} else {
 				stmt = "int textToBeReplacedLength" + i + " = ((TextView) activityTOGGLETools.findViewById("
 						+ log.getSearchKw() + ")).getText().length();";
@@ -800,9 +807,9 @@ public class Enhancer {
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
 				l = JavaParser.parseStatement(
-						"TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+						"if (res_task) {TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
 								+ "," + "\"" + log.getInteractionType() + "\", String.valueOf(textToBeReplacedLength"
-								+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");");
+								+ (i - 1) + ")+\";\"+" + log.getInteractionParams() + ");} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}");
 			}
 			break;
 		case "cleartext":
@@ -815,17 +822,17 @@ public class Enhancer {
 						+ log.getSearchKw() + ")).getText().length();";
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("if (res_task) {TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
 						+ "," + "\"" + log.getSearchKw() + "\"" + "," + "\"" + log.getInteractionType()
-						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
+						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}");
 			} else {
 				stmt = "int textToBeClearedLength" + i + " = ((TextView) activityTOGGLETools.findViewById("
 						+ log.getSearchKw() + ")).getText().length();";
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("if (res_task) {TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
 						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType()
-						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
+						+ "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}");
 			}
 			break;
 		case "presskey":
@@ -842,8 +849,8 @@ public class Enhancer {
 			b.addStatement(++i, keyArray);
 			b.addStatement(++i, ifStmt);
 
-			stmt = "TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
-					+ "," + "\"" + log.getInteractionType() + "\"" + ", espressoKeyVal" + (i - 3) + ");";
+			stmt = "if (res_task) {TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\"" + "," + log.getSearchKw()
+					+ "," + "\"" + log.getInteractionType() + "\"" + ", espressoKeyVal" + (i - 3) + ");} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}";
 
 			l = JavaParser.parseStatement(stmt);
 
@@ -858,12 +865,12 @@ public class Enhancer {
 			break;
 		default:
 			if (log.getInteractionParams().isEmpty())
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
-						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ");");
+				l = JavaParser.parseStatement("if (res_task) {TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
+						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ");} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}");
 			else
-				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
+				l = JavaParser.parseStatement("if (res_task) {TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\"," + "\"" + log.getSearchType() + "\""
 						+ "," + log.getSearchKw() + "," + "\"" + log.getInteractionType() + "\"" + ","
-						+ log.getInteractionParams() + ");");
+						+ log.getInteractionParams() + ");} else { TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\""+ ", \"-\", \"-\", \"dialogescape\");}");
 			break;
 		}
 
