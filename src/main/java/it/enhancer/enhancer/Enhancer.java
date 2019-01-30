@@ -623,7 +623,7 @@ public class Enhancer {
 				op = "pressBack";
 			} else if (stmtString.contains("pressBackUnconditionally();")) {
 				op = "pressBackUnconditionally";
-			} else if (stmtString.contains("openActionBarOverflowOrOptionsMenu();")) {
+			} else if (stmtString.contains("openActionBarOverflowOrOptionsMenu(")) {
 				op = "openActionBarOverflowOrOptionsMenu";
 			} else if (stmtString.contains("openContextualActionModeOverflowMenu();")) {
 				op = "openContextualActionModeOverflowMenu";
