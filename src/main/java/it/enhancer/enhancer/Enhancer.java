@@ -230,6 +230,11 @@ public class Enhancer {
 				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
 			else {
 				parseJsonArgument(j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
+				
+				// check followed by perform or vice versa
+				if (((JSONObject)a.get(0)).getString("type").equals("EnclosedExpr"))
+					a = new JSONArray().put(((JSONObject)a.get(0)).getJSONObject("inner"));
+				
 				parseLeftInArgument((JSONObject) a.get(0));
 				parseRightInArgument((JSONObject) a.get(0));
 				parseScopeInArgument((JSONObject) a.get(0));
