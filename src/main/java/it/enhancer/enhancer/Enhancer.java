@@ -76,7 +76,7 @@ public class Enhancer {
 
 			// save statistic into file
 			String statisticFilename = folderPath + filename + "_Statistic.txt";
-			Statistic.writeDataToFile(statistic, statisticFilename);
+			//Statistic.writeDataToFile(statistic, statisticFilename);
 		} catch (FileNotFoundException f) {
 			System.out.println("File: " + filePath + " not found!");
 		} catch (UnsupportedEncodingException u) {

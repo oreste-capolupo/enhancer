@@ -140,7 +140,7 @@ public class Statistic {
 		statistic.put("openLinkWithUri", 0);
 		statistic.put("pressBack", 0);
 		statistic.put("pressBackUnconditionally", 0);
-		statistic.put("pressIMEActionButton", 0);
+		statistic.put("pressImeActionButton", 0);
 		statistic.put("pressKey", 0);
 		statistic.put("pressMenuKey", 0);
 		statistic.put("removeGlobalAssertion", 0);
