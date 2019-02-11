@@ -113,6 +113,10 @@ public class BaseEspressoTest extends BaseAndroidTestCase {
     @Test
     public void testTest() {
 
+        onView(withId(R.id.fab_expand_menu_button)).check(matches(isDisplayed())).perform(click(), replaceText(method.call("/").toString()), pressImeActionButton());
+
+        //onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
+
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
 
 

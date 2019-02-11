@@ -414,7 +414,6 @@ public class Enhancer {
 				value = v.toString();
 			}
 
-			// if (!parameters.toString().contains(value) || type.equals("BinaryExpr")) {
 			if (field.toString().isEmpty() || type.equals("BinaryExpr")) {
 				if (type.equals("BinaryExpr")) {
 					if (parametersValue.isEmpty())
@@ -438,7 +437,6 @@ public class Enhancer {
 				else
 					field.append(value + ",");
 			}
-			// }
 
 			methodParameters(a, ++j);
 		} catch (JSONException e) {
@@ -483,26 +481,6 @@ public class Enhancer {
 							parameters.append(name);
 						else {
 							type = a.getJSONObject(j).getJSONObject("right").getString("type");
-							/*
-							 * try { type =
-							 * a.getJSONObject(j).getJSONObject("left").getJSONObject("right").getString(
-							 * "type"); if (!field.toString().isEmpty()) { int dotIndex =
-							 * field.lastIndexOf("."); field = new StringBuilder(field.subSequence(0,
-							 * dotIndex + 1));
-							 * 
-							 * int plusIndex = parameters.lastIndexOf("+"); parameters.replace(plusIndex +
-							 * 1, plusIndex + 1, field.toString());
-							 * 
-							 * int commaIndex = -1; if (type.equals("MethodCallExpr") && (commaIndex =
-							 * parameters.lastIndexOf(",")) != -1) { int numberOfArguments =
-							 * a.getJSONObject(j).getJSONObject("left").getJSONObject("right")
-							 * .getJSONArray("arguments").length(); for (int w = 0; w < numberOfArguments -
-							 * 1; w++) commaIndex = parameters.substring(0, commaIndex).lastIndexOf(",");
-							 * parameters.replace(commaIndex, commaIndex + 1, "("); parameters.append(")");
-							 * } }
-							 * 
-							 * } catch (Exception e2) {
-							 */
 							int commaIndex = -1;
 							if (type.equals("MethodCallExpr") && (commaIndex = parameters.lastIndexOf(",")) != -1) {
 								int numberOfArguments = a.getJSONObject(j).getJSONObject("right")
@@ -513,8 +491,6 @@ public class Enhancer {
 								parameters.append(")");
 							} else
 								parameters.append("+" + name);
-							// }
-
 						}
 						// field access
 					} else if (type.equals("FieldAccessExpr") && field.toString().startsWith("R.id.")) {
@@ -546,6 +522,14 @@ public class Enhancer {
 							else
 								parameters.append("," + name.substring(0, name.length() - 1) + "[" + index + "]");
 						}
+						// method call
+					} else if ((type.equals("MethodCallExpr"))) {
+						// substring is used to remove the comma at the end of the string
+						if (parametersValue.isEmpty())
+							parameters.append(name.substring(0, name.length()-1) + "()");
+						else
+							parameters = new StringBuilder(name.substring(0, name.length()-1) + "(" + parametersValue + ")");
+						field = new StringBuilder("");
 
 						// name expr
 					} else {

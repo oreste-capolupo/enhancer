@@ -8,8 +8,10 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		Enhancer en = new Enhancer("com.fsck.k9");
-		en.generateEnhancedClassFrom("C:\\Users\\Utente\\Desktop\\k-9-5.600\\k9mail\\src\\androidTest\\java\\com\\fsck\\k9\\AuthTest.java");
-		en.generateEnhancedClassFrom("C:\\Users\\Utente\\Downloads\\only_test_classes\\Bondes87\\ShppCourseAndroid\\Bondes87_ShppCourseAndroid_PersonalNotes_app_src_androidTest_java_com_dbondarenko_shpp_personalnotes_BaseUITest.java.java");
+		en.generateEnhancedClassFrom("/home/oreste/eclipse-workspace/Enhancer/enhancer/files/BaseEspressoTest.java");
+		
+		/*en.generateEnhancedClassFrom("C:\\Users\\Utente\\Desktop\\k-9-5.600\\k9mail\\src\\androidTest\\java\\com\\fsck\\k9\\AuthTest.java");
+		en.generateEnhancedClassFrom("C:\\Users\\Utente\\Downloads\\only_test_classes\\Bondes87\\ShppCourseAndroid\\Bondes87_ShppCourseAndroid_PersonalNotes_app_src_androidTest_java_com_dbondarenko_shpp_personalnotes_BaseUITest.java.java");*/
 		
 		
 		/*en.generateEnhancedClassFrom("/home/oreste/Scaricati/ThePassEditActivity.java");

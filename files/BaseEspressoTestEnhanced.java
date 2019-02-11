@@ -91,7 +91,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsAnything.anything;
 import static org.hamcrest.core.IsNot.not;
-import it.feio.android.omninotes.TOGGLETools;
+import com.fsck.k9.TOGGLETools;
+import java.util.concurrent.FutureTask;
+import android.support.test.runner.lifecycle.Stage.RESUMED;
+import static android.support.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread;
 
 public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
 
@@ -108,44 +111,87 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
 
     @Test
     public void testTest() {
-        onView(allOf(withId(R.id.benefitIcon), withDrawableId(R.drawable.cat1))).check(matches(isCompletelyDisplayed()));
+        FutureTask<Boolean> capture_task = null;
+        boolean res_task = false;
         Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
         Date now = new Date();
         Activity activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "fab_expand_menu_button", "check");
         TOGGLETools.DumpScreen(now, device);
-        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
+        onView(withId(R.id.fab_expand_menu_button)).check(matches(isDisplayed())).perform(click(), replaceText(method.call("/").toString()), pressImeActionButton());
         try {
             Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "fab_expand_menu_button", "click");
         TOGGLETools.DumpScreen(now, device);
-        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
+        onView(withId(R.id.fab_expand_menu_button)).check(matches(isDisplayed())).perform(click(), replaceText(method.call("/").toString()), pressImeActionButton());
         try {
             Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "check");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        int textToBeReplacedLength23 = ((TextView) activityTOGGLETools.findViewById(R.id.fab_expand_menu_button)).getText().length();
+        TOGGLETools.LogInteraction(now, "testTest", "id", "fab_expand_menu_button", "replacetext", String.valueOf(textToBeReplacedLength23) + ";" + method.call("/").toString());
         TOGGLETools.DumpScreen(now, device);
-        ViewInteraction vi = onView(withId(R.id.fab_expand_menu_button)).perform(longClick(), longClick()).check(matches(isDisplayed()));
+        onView(withId(R.id.fab_expand_menu_button)).check(matches(isDisplayed())).perform(click(), replaceText(method.call("/").toString()), pressImeActionButton());
         try {
             Thread.sleep(1000);
         } catch (Exception e) {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "fab_expand_menu_button", "longclick");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "fab_expand_menu_button", "pressIme");
         TOGGLETools.DumpScreen(now, device);
+        onView(withId(R.id.fab_expand_menu_button)).check(matches(isDisplayed())).perform(click(), replaceText(method.call("/").toString()), pressImeActionButton());
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activityTOGGLETools = getActivityInstance();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "fab_expand_menu_button", "longclick");
+        TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.fab_expand_menu_button)).perform(longClick());
         try {
             Thread.sleep(1000);
@@ -153,9 +199,16 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "typeintofocused", "IntoFocused");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "-", "-", "typeintofocused");
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.detail_title)).perform(typeTextIntoFocusedView("IntoFocused"));
         try {
             Thread.sleep(1000);
@@ -163,15 +216,22 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal39 = String.valueOf(KeyEvent.KEYCODE_P);
-        String[] espressoKeyArray39 = espressoKeyVal39.split(",");
-        if (espressoKeyArray39.length > 1) {
-            int espressoKeyArrayIndex39 = espressoKeyArray39[0].indexOf(":");
-            espressoKeyVal39 = espressoKeyArray39[0].substring(espressoKeyArrayIndex39 + 1).trim();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal39);
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        String espressoKeyVal56 = String.valueOf(KeyEvent.KEYCODE_P);
+        String[] espressoKeyArray56 = espressoKeyVal56.split(",");
+        if (espressoKeyArray56.length > 1) {
+            int espressoKeyArrayIndex56 = espressoKeyArray56[0].indexOf(":");
+            espressoKeyVal56 = espressoKeyArray56[0].substring(espressoKeyArrayIndex56 + 1).trim();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_title", "presskey", espressoKeyVal56);
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_P));
         try {
             Thread.sleep(1000);
@@ -179,15 +239,22 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal49 = String.valueOf(KeyEvent.KEYCODE_R);
-        String[] espressoKeyArray49 = espressoKeyVal49.split(",");
-        if (espressoKeyArray49.length > 1) {
-            int espressoKeyArrayIndex49 = espressoKeyArray49[0].indexOf(":");
-            espressoKeyVal49 = espressoKeyArray49[0].substring(espressoKeyArrayIndex49 + 1).trim();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal49);
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        String espressoKeyVal67 = String.valueOf(KeyEvent.KEYCODE_R);
+        String[] espressoKeyArray67 = espressoKeyVal67.split(",");
+        if (espressoKeyArray67.length > 1) {
+            int espressoKeyArrayIndex67 = espressoKeyArray67[0].indexOf(":");
+            espressoKeyVal67 = espressoKeyArray67[0].substring(espressoKeyArrayIndex67 + 1).trim();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_title", "presskey", espressoKeyVal67);
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_R));
         try {
             Thread.sleep(1000);
@@ -195,15 +262,22 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal59 = String.valueOf(KeyEvent.KEYCODE_E);
-        String[] espressoKeyArray59 = espressoKeyVal59.split(",");
-        if (espressoKeyArray59.length > 1) {
-            int espressoKeyArrayIndex59 = espressoKeyArray59[0].indexOf(":");
-            espressoKeyVal59 = espressoKeyArray59[0].substring(espressoKeyArrayIndex59 + 1).trim();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal59);
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        String espressoKeyVal78 = String.valueOf(KeyEvent.KEYCODE_E);
+        String[] espressoKeyArray78 = espressoKeyVal78.split(",");
+        if (espressoKeyArray78.length > 1) {
+            int espressoKeyArrayIndex78 = espressoKeyArray78[0].indexOf(":");
+            espressoKeyVal78 = espressoKeyArray78[0].substring(espressoKeyArrayIndex78 + 1).trim();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_title", "presskey", espressoKeyVal78);
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_E));
         try {
             Thread.sleep(1000);
@@ -211,14 +285,43 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal69 = String.valueOf(KeyEvent.KEYCODE_S);
-        String[] espressoKeyArray69 = espressoKeyVal69.split(",");
-        if (espressoKeyArray69.length > 1) {
-            int espressoKeyArrayIndex69 = espressoKeyArray69[0].indexOf(":");
-            espressoKeyVal69 = espressoKeyArray69[0].substring(espressoKeyArrayIndex69 + 1).trim();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal69);
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        String espressoKeyVal89 = String.valueOf(KeyEvent.KEYCODE_S);
+        String[] espressoKeyArray89 = espressoKeyVal89.split(",");
+        if (espressoKeyArray89.length > 1) {
+            int espressoKeyArrayIndex89 = espressoKeyArray89[0].indexOf(":");
+            espressoKeyVal89 = espressoKeyArray89[0].substring(espressoKeyArrayIndex89 + 1).trim();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_title", "presskey", espressoKeyVal89);
+        TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
+        onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+        }
+        now = new Date();
+        activityTOGGLETools = getActivityInstance();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        String espressoKeyVal100 = String.valueOf(KeyEvent.KEYCODE_S);
+        String[] espressoKeyArray100 = espressoKeyVal100.split(",");
+        if (espressoKeyArray100.length > 1) {
+            int espressoKeyArrayIndex100 = espressoKeyArray100[0].indexOf(":");
+            espressoKeyVal100 = espressoKeyArray100[0].substring(espressoKeyArrayIndex100 + 1).trim();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_title", "presskey", espressoKeyVal100);
         TOGGLETools.DumpScreen(now, device);
         onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
         try {
@@ -227,25 +330,16 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        String espressoKeyVal79 = String.valueOf(KeyEvent.KEYCODE_S);
-        String[] espressoKeyArray79 = espressoKeyVal79.split(",");
-        if (espressoKeyArray79.length > 1) {
-            int espressoKeyArrayIndex79 = espressoKeyArray79[0].indexOf(":");
-            espressoKeyVal79 = espressoKeyArray79[0].substring(espressoKeyArrayIndex79 + 1).trim();
-        }
-        TOGGLETools.LogInteraction(now, "id", "detail_title", "presskey", espressoKeyVal79);
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
-        TOGGLETools.DumpScreen(now, device);
-        onView(withId(R.id.detail_title)).perform(pressKey(KeyEvent.KEYCODE_S));
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
         try {
-            Thread.sleep(1000);
-        } catch (Exception e) {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        now = new Date();
-        activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "detail_content", "typetext", "content");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_content", "typetext", "content");
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.detail_content)).perform(typeText("content"));
         try {
             Thread.sleep(1000);
@@ -253,10 +347,17 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        int textToBeReplacedLength96 = ((TextView) activityTOGGLETools.findViewById(R.id.detail_content)).getText().length();
-        TOGGLETools.LogInteraction(now, "id", "detail_content", "replacetext", String.valueOf(textToBeReplacedLength96) + ";" + "ciao");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        int textToBeReplacedLength119 = ((TextView) activityTOGGLETools.findViewById(R.id.detail_content)).getText().length();
+        TOGGLETools.LogInteraction(now, "testTest", "id", "detail_content", "replacetext", String.valueOf(textToBeReplacedLength119) + ";" + "ciao");
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.detail_content)).perform(replaceText("ciao"));
         try {
             Thread.sleep(1000);
@@ -264,8 +365,14 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "content-desc", "drawer open", "click");
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
@@ -274,9 +381,16 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "text", "IntoFocusedpress", "check");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "text", "IntoFocusedpress", "check");
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withText("IntoFocusedpress")).check(matches(isDisplayed()));
         try {
             Thread.sleep(1000);
@@ -284,8 +398,14 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "content-desc", "drawer open", "click");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "content-desc", "drawer open", "click");
         TOGGLETools.DumpScreen(now, device);
         onView(withContentDescription("drawer open")).perform(click());
         try {
@@ -294,9 +414,16 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
-        TOGGLETools.LogInteraction(now, "id", "settings_view", "click");
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "id", "settings_view", "click");
         TOGGLETools.DumpScreen(now, device);
+        // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
         onView(withId(R.id.settings_view)).perform(click());
         try {
             Thread.sleep(1000);
@@ -304,10 +431,17 @@ public class BaseEspressoTestEnhanced extends BaseAndroidTestCase {
         }
         now = new Date();
         activityTOGGLETools = getActivityInstance();
+        capture_task = new FutureTask<Boolean>(new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));
         Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);
-        TOGGLETools.LogInteraction(now, "-", "-", "fullcheck", currdisp.bottom + ";" + currdisp.top + ";" + currdisp.right + ";" + currdisp.left);
-        TOGGLETools.TakeScreenCapture(now, activityTOGGLETools);
+        try {
+            runOnUiThread(capture_task);
+            res_task = capture_task.get();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        TOGGLETools.LogInteraction(now, "testTest", "-", "-", "fullcheck", currdisp.bottom + ";" + currdisp.top + ";" + currdisp.right + ";" + currdisp.left);
         TOGGLETools.DumpScreen(now, device);
+    // onView(withContentDescription(obj.getDesc(par).getNameById(pip, 2, "val").drawerDesc(pippo, "value"))).perform(click()).check(matches(isEnabled()));
     // fullcheck
     /*Instrumentation instr = InstrumentationRegistry.getInstrumentation();
         UiDevice device = UiDevice.getInstance(instr);
