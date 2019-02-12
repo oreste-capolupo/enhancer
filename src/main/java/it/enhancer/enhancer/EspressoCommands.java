@@ -22,7 +22,7 @@ public class EspressoCommands {
 			"openActionBarOverflowOrOptionsMenu", "openContextualActionModeOverflowMenu", "openDrawer", "openLink",
 			"openLinkWithText", "openLinkWithUri", "pressBack", "pressBackUnconditionally", "pressImeActionButton",
 			"pressKey", "pressMenuKey", "removeGlobalAssertion", "repeatedlyUntil", "replaceText", "scrollLeft",
-			"scrollRight", "scrollTo", "scrollTo", "scrollToFirst", "scrollToHolder", "scrollToLast", "scrollToPage",
+			"scrollRight", "scrollTo", "scrollToFirst", "scrollToHolder", "scrollToLast", "scrollToPage",
 			"scrollToPosition", "selectedDescendantsMatch", "setData", "setTime", "startsWith", "supportsInputMethods",
 			"swipeDown", "swipeLeft", "swipeRight", "swipeUp", "toPackage", "typeText", "typeTextIntoFocusedView",
 			"withAlpha", "withChild", "withClassName", "withContentDescription", "withDecorView",
