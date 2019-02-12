@@ -76,7 +76,7 @@ public class Enhancer {
 
 			// save statistic into file
 			String statisticFilename = folderPath + filename + "_Statistic.txt";
-			//Statistic.writeDataToFile(statistic, statisticFilename);
+			// Statistic.writeDataToFile(statistic, statisticFilename);
 		} catch (FileNotFoundException f) {
 			System.out.println("File: " + filePath + " not found!");
 		} catch (UnsupportedEncodingException u) {
@@ -112,21 +112,34 @@ public class Enhancer {
 	}
 
 	private void addImportsToCompilationUnit() {
+		NodeList<ImportDeclaration> imports = cu.getImports();
+		String version = "android.support.";
+
+		for (ImportDeclaration i : imports) {
+			String name = i.getNameAsString();
+			if (name.startsWith("android.support.test.espresso"))
+				break;
+			else if (name.startsWith("androidx.test.espresso")) {
+				version = "androidx.";
+				break;
+			}
+
+		}
+
 		// imports only if it does not exist
 		cu.addImport(packageName + ".TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
 		cu.addImport("android.app.Activity", false, false);
 		cu.addImport("android.app.Instrumentation", false, false);
 		cu.addImport("java.util.Collection", false, false);
-		cu.addImport("android.support.test.InstrumentationRegistry", false, false);
+		cu.addImport(version + "test.InstrumentationRegistry", false, false);
 		cu.addImport("android.widget.TextView", false, false);
-		cu.addImport("android.support.test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
-		cu.addImport("android.support.test.uiautomator.UiDevice", false, false);
+		cu.addImport(version + "test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
+		cu.addImport(version + "test.uiautomator.UiDevice", false, false);
 		cu.addImport("android.graphics.Rect", false, false);
 		cu.addImport("java.util.concurrent.FutureTask", false, false);
-		cu.addImport("android.support.test.runner.lifecycle.Stage.RESUMED", false, false);
-		cu.addImport("android.support.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread", true,
-				false);
+		cu.addImport(version + "test.runner.lifecycle.Stage.RESUMED", true, false);
+		cu.addImport(version + "test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread", true, false);
 	}
 
 	private void addActivityInstanceMethod() {
@@ -230,11 +243,11 @@ public class Enhancer {
 				parseJsonArgument(j, a = j.getJSONArray("arguments"), 0);
 			else {
 				parseJsonArgument(j, a = ((JSONObject) a.get(i)).getJSONArray("arguments"), 0);
-				
+
 				// check followed by perform or vice versa
-				if (((JSONObject)a.get(0)).getString("type").equals("EnclosedExpr"))
-					a = new JSONArray().put(((JSONObject)a.get(0)).getJSONObject("inner"));
-				
+				if (((JSONObject) a.get(0)).getString("type").equals("EnclosedExpr"))
+					a = new JSONArray().put(((JSONObject) a.get(0)).getJSONObject("inner"));
+
 				parseLeftInArgument((JSONObject) a.get(0));
 				parseRightInArgument((JSONObject) a.get(0));
 				parseScopeInArgument((JSONObject) a.get(0));
@@ -526,9 +539,10 @@ public class Enhancer {
 					} else if ((type.equals("MethodCallExpr"))) {
 						// substring is used to remove the comma at the end of the string
 						if (parametersValue.isEmpty())
-							parameters.append(name.substring(0, name.length()-1) + "()");
+							parameters.append(name.substring(0, name.length() - 1) + "()");
 						else
-							parameters = new StringBuilder(name.substring(0, name.length()-1) + "(" + parametersValue + ")");
+							parameters = new StringBuilder(
+									name.substring(0, name.length() - 1) + "(" + parametersValue + ")");
 						field = new StringBuilder("");
 
 						// name expr
@@ -837,11 +851,11 @@ public class Enhancer {
 							+ log.getInteractionType() + "\", String.valueOf(textToBeClearedLength" + (i - 1) + "));");
 				} else {
 					stmt = "String searchKw = \"" + log.getSearchKw() + "\";";
-					String stmt2 = "int textToBeReplacedLength" + i + " = searchKw.length();";
+					String stmt2 = "int textToBeClearedLength" + i + " = searchKw.length();";
 
 					b.addStatement(++i, JavaParser.parseStatement(stmt));
 					b.addStatement(++i, JavaParser.parseStatement(stmt2));
-					
+
 					l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\","
 							+ "\"" + log.getSearchType() + "\"" + "," + "\"" + log.getSearchKw() + "\"" + "," + "\""
 							+ log.getInteractionType() + "\", String.valueOf(textToBeClearedLength" + (i - 2) + "));");
@@ -852,7 +866,7 @@ public class Enhancer {
 							+ log.getSearchKw() + ")).getText().length();";
 				else
 					stmt = "int textToBeReplacedLength" + i + " = " + log.getSearchKw() + ".length();";
-				
+
 				b.addStatement(++i, JavaParser.parseStatement(stmt));
 
 				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\","
