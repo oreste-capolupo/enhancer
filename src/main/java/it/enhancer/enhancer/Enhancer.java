@@ -652,7 +652,6 @@ public class Enhancer {
 
 	private int enhanceMethod(BlockStmt b, String methodName, Statement s, int i) {
 		Statement captureTask = JavaParser.parseStatement("FutureTask<Boolean> capture_task = null;");
-		Statement resTask = JavaParser.parseStatement("boolean res_task = false;");
 		Statement instrumentation = JavaParser
 				.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
 		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
@@ -664,7 +663,7 @@ public class Enhancer {
 		Statement captureTaskValue = JavaParser.parseStatement(
 				"capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
 		TryStmt screenCapture = (TryStmt) JavaParser.parseStatement(
-				"try { runOnUiThread(capture_task); res_task = capture_task.get();} catch (Throwable t) { t.printStackTrace(); }");
+				"try { runOnUiThread(capture_task); } catch (Throwable t) { t.printStackTrace(); }");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
 				+ "        } catch (Exception e) {\n" + "\n" + "        }");
@@ -718,7 +717,6 @@ public class Enhancer {
 				if (firstTest) {
 					firstTest = false;
 					b.addStatement(i, captureTask);
-					b.addStatement(++i, resTask);
 					b.addStatement(++i, instrumentation);
 					b.addStatement(++i, device);
 					b.addStatement(++i, firstTestDate);
@@ -928,7 +926,7 @@ public class Enhancer {
 		Statement captureTaskValue = JavaParser.parseStatement(
 				"capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
 		TryStmt screenCapture = (TryStmt) JavaParser.parseStatement(
-				"try { runOnUiThread(capture_task); res_task = capture_task.get();} catch (Throwable t) { t.printStackTrace(); }");
+				"try { runOnUiThread(capture_task);} catch (Throwable t) { t.printStackTrace(); }");
 		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
 
 		Statement currDisp = JavaParser
