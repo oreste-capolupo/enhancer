@@ -133,6 +133,7 @@ public class Enhancer {
 		cu.addImport("android.app.Instrumentation", false, false);
 		cu.addImport("java.util.Collection", false, false);
 		cu.addImport(version + "test.InstrumentationRegistry", false, false);
+		cu.addImport(version + "test.InstrumentationRegistry.getInstrumentation", true, false);
 		cu.addImport("android.widget.TextView", false, false);
 		cu.addImport(version + "test.runner.lifecycle.ActivityLifecycleMonitorRegistry", false, false);
 		cu.addImport(version + "test.uiautomator.UiDevice", false, false);
