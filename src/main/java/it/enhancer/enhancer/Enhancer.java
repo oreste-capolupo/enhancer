@@ -35,7 +35,7 @@ public class Enhancer {
 
 	private Map<String, Integer> statistic;
 	private String packageName;
-	
+
 	private String version;
 
 	private Statement captureTask = JavaParser.parseStatement("FutureTask<Boolean> capture_task = null;");
@@ -96,7 +96,7 @@ public class Enhancer {
 
 			// save statistic into file
 			String statisticFilename = folderPath + filename + "_Statistic.txt";
-			// Statistic.writeDataToFile(statistic, statisticFilename);
+			Statistic.writeDataToFile(statistic, statisticFilename);
 		} catch (FileNotFoundException f) {
 			System.out.println("File: " + filePath + " not found!");
 		} catch (UnsupportedEncodingException u) {
@@ -247,9 +247,14 @@ public class Enhancer {
 			// gets onView or onData and all nested performs and checks but the last one
 			String name = j.getJSONObject("name").getString("identifier");
 
-			if (!name.equals("onView") && !name.equals("intended") && !name.equals("intending")
-					&& !name.equals("perform") && !name.equals("check"))
+			if (!name.equals("intended") && !name.equals("intending") && !name.equals("perform")
+					&& !name.equals("check")) {
 				operations.add(new Operation(name, ""));
+
+				// save occurrences for onView and onData
+				Integer oldStatistic = statistic.get(name);
+				statistic.put(name, oldStatistic.intValue() + 1);
+			}
 
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
@@ -601,33 +606,37 @@ public class Enhancer {
 			String json = printer.output(s);
 
 			// TEST CASES like : ViewInteraction vi = onView(withId(...)).perform(...);
-			/*
-			 * if (json.contains("VariableDeclarator")) { String type = "type";
-			 * 
-			 * // Substitute type with typeV to avoid key duplicate conflict for (int j =
-			 * -1; (j = json.indexOf(type, j + 1)) != -1; j++) { String old =
-			 * json.substring(j, j + 26); if (old.equals("type\":\"VariableDeclarator\"")) {
-			 * json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" +
-			 * json.substring(j + 26); break; } }
-			 * 
-			 * }
-			 */
+
+			if (json.contains("VariableDeclarator")) {
+				String type = "type";
+
+				// Substitute type with typeV to avoid key duplicate conflict
+				for (int j = -1; (j = json.indexOf(type, j + 1)) != -1; j++) {
+					String old = json.substring(j, j + 26);
+					if (old.equals("type\":\"VariableDeclarator\"")) {
+						json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" + json.substring(j + 26);
+						break;
+					}
+				}
+
+			}
 
 			try {
 				JSONObject j = new JSONObject(json);
 				// System.out.println(j.toString());
 				j = j.getJSONObject("expression");
 
-				// String type = j.getString("type");
+				String type = j.getString("type");
 
 				// vi = onView(withId(...)).perform(...);
-				/*
-				 * if (type.equals("AssignExpr")) { j = j.getJSONObject("value");
-				 * 
-				 * // ViewInteraction vi = onView(withId(...)).perform(...); } else if
-				 * (type.equals("VariableDeclarationExpr")) { j =
-				 * j.getJSONArray("variables").getJSONObject(0).getJSONObject("initializer"); }
-				 */
+
+				if (type.equals("AssignExpr")) {
+					j = j.getJSONObject("value");
+
+					// ViewInteraction vi = onView(withId(...)).perform(...);
+				} else if (type.equals("VariableDeclarationExpr")) {
+					j = j.getJSONArray("variables").getJSONObject(0).getJSONObject("initializer");
+				}
 
 				parseJsonScope(j);
 
@@ -643,6 +652,7 @@ public class Enhancer {
 				return enhanceMethod(b, methodName, s, i);
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
+				e.printStackTrace();
 			}
 
 			// handling of indipendent Espresso actions
@@ -687,8 +697,8 @@ public class Enhancer {
 			return enhanceMethodOnData(b, methodName, s, i);
 		} else {
 			if (operations.size() > 0) {
-				searchType = ViewMatchers.getSearchType(operations.get(0).getName());
-				searchKw = operations.get(0).getParameter();
+				searchType = ViewMatchers.getSearchType(operations.get(1).getName());
+				searchKw = operations.get(1).getParameter();
 			}
 
 			if (!searchType.isEmpty() || searchType.equals("-")) {
@@ -698,7 +708,7 @@ public class Enhancer {
 				if (operations.size() > 1)
 					b.remove(s);
 
-				for (int j = 1; j < operations.size(); j++) {
+				for (int j = 2; j < operations.size(); j++) {
 					String interactionType = ViewActions.getSearchType(operations.get(j).getName());
 					String interactionParams = operations.get(j).getParameter();
 					/*
@@ -736,7 +746,7 @@ public class Enhancer {
 						b.addStatement(++i, device);
 						b.addStatement(++i, firstTestDate);
 						b.addStatement(++i, firstTestActivity);
-					} else if (j == 2 && interactionType.equals("check") || j == 1) {
+					} else if (j == 3 && interactionType.equals("check") || j == 2) {
 						b.addStatement(i, date);
 						b.addStatement(++i, activity);
 
@@ -769,114 +779,117 @@ public class Enhancer {
 		Statement height = JavaParser.parseStatement("int height = 0;");
 		Statement offset = JavaParser.parseStatement("int offset = 0;");
 
-		
-		// get onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
-		Node inAdapterView = getOnDataInAdapterView(s);
+		try {
+			// get onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
+			Node inAdapterView = getOnDataInAdapterView(s);
 
-		// get 'someId' in
-		// onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
-		String listId = getIdInAdapterView(inAdapterView);
+			// get 'someId' in
+			// onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
+			String listId = getIdInAdapterView(inAdapterView);
 
-		TryStmt populateDataFromList = (TryStmt) JavaParser.parseStatement("try {\r\n"
-				+ "            ListView l = activityTOGGLETools.findViewById(R.id."+listId+");\r\n"
-				+ "            int position = l.getFirstVisiblePosition() - firstVisiblePosition;\r\n"
-				+ "            firstVisiblePosition = l.getFirstVisiblePosition();\r\n"
-				+ "            View c = l.getChildAt(0);\r\n" + "            View v = l.getSelectedView();\r\n"
-				+ "            offset = v.getTop();\r\n" + "            height = c.getHeight();\r\n"
-				+ "            scrolly"+listId+"= -c.getTop() + position * height;\r\n"
-				+ "        } catch (Exception e) {\r\n" + "            try {\r\n"
-				+ "                GridView l = activityTOGGLETools.findViewById(R.id."+listId+");\r\n"
-				+ "                int position = l.getFirstVisiblePosition() - firstVisiblePosition;\r\n"
-				+ "                firstVisiblePosition = l.getFirstVisiblePosition();\r\n"
-				+ "                View c = l.getChildAt(0);\r\n" + "                View v = l.getSelectedView();\r\n"
-				+ "                offset = v.getTop();\r\n" + "                height = c.getHeight();\r\n"
-				+ "                scrolly"+listId+" = -c.getTop() + position * height;\r\n"
-				+ "            } catch (Exception e1) {\r\n" + "                // try {\r\n"
-				+ "                // Spinner s = ...;\r\n" + "                // ...\r\n"
-				+ "                // } catch (Exception ei){\r\n" + "                // try {\r\n"
-				+ "                // ...\r\n" + "                // }\r\n" + "                // }\r\n"
-				+ "            }\r\n" + "        }");
-		
-		addImportsOnData();
-		
-		String scrollToString = inAdapterView.toString() + ".perform(scrollTo());";
-		Statement scrollToStatement = JavaParser.parseStatement(scrollToString);
+			TryStmt populateDataFromList = (TryStmt) JavaParser.parseStatement("try {\r\n"
+					+ "            ListView l = activityTOGGLETools.findViewById(R.id." + listId + ");\r\n"
+					+ "            int position = l.getFirstVisiblePosition() - firstVisiblePosition;\r\n"
+					+ "            firstVisiblePosition = l.getFirstVisiblePosition();\r\n"
+					+ "            View c = l.getChildAt(0);\r\n" + "            View v = l.getSelectedView();\r\n"
+					+ "            offset = v.getTop();\r\n" + "            height = c.getHeight();\r\n"
+					+ "            scrolly" + listId + "= -c.getTop() + position * height;\r\n"
+					+ "        } catch (Exception e) {\r\n" + "            try {\r\n"
+					+ "                GridView l = activityTOGGLETools.findViewById(R.id." + listId + ");\r\n"
+					+ "                int position = l.getFirstVisiblePosition() - firstVisiblePosition;\r\n"
+					+ "                firstVisiblePosition = l.getFirstVisiblePosition();\r\n"
+					+ "                View c = l.getChildAt(0);\r\n"
+					+ "                View v = l.getSelectedView();\r\n" + "                offset = v.getTop();\r\n"
+					+ "                height = c.getHeight();\r\n" + "                scrolly" + listId
+					+ " = -c.getTop() + position * height;\r\n" + "            } catch (Exception e1) {\r\n"
+					+ "                // try {\r\n" + "                // Spinner s = ...;\r\n"
+					+ "                // ...\r\n" + "                // } catch (Exception ei){\r\n"
+					+ "                // try {\r\n" + "                // ...\r\n" + "                // }\r\n"
+					+ "                // }\r\n" + "            }\r\n" + "        }");
 
-		// remove test
-		Statement st = s;
-		b.remove(s);
+			addImportsOnData();
 
-		if (firstTest) {
-			firstTest = false;
-			b.addStatement(i, captureTask);
-			b.addStatement(++i, instrumentation);
-			b.addStatement(++i, device);
-			b.addStatement(++i, firstTestDate);
-			b.addStatement(++i, firstTestActivity);
-		} else {
-			b.addStatement(i, date);
-			b.addStatement(++i, activity);
-		}
+			String scrollToString = inAdapterView.toString() + ".perform(scrollTo());";
+			Statement scrollToStatement = JavaParser.parseStatement(scrollToString);
 
-		// first screen capture before scrolling
-		b.addStatement(++i, captureTaskValue);
-		b.addStatement(++i, screenCapture);
-		b.addStatement(++i, dumpScreen);
+			// remove test
+			Statement st = s;
+			b.remove(s);
 
-		LogCat log = new LogCat(methodName, "id", "\"" + listId + "\"", "scrollto", "");
-		i = addLogInteractionToCu(log, i, b);
-		
-		// add scrollTo test
-		b.addStatement(++i, scrollToStatement);
-
-		// add variables
-		if (!b.toString().contains("int firstVisiblePosition = 0;")) {
-			b.addStatement(++i, firstVisiblePosition);
-			b.addStatement(++i, height);
-			b.addStatement(++i, offset);
-		}
-
-		Statement scrolly = JavaParser.parseStatement("int scrolly" + listId + " = 0;");
-		if (!b.toString().contains("int scrolly" + listId + " = 0;")) {
-			b.addStatement(++i, scrolly);
-		}
-
-		// populate data in variables
-		b.addStatement(++i, populateDataFromList);
-		
-		b.addStatement(++i, date);
-		// log scrollTo interaction with parameters
-		log = new LogCat(methodName, "id", "\"" + listId + "\"", "scrollto",
-				"scrolly" + listId + "+\";\"+height+\";\"+offset");
-		i = addLogInteractionToCu(log, i, b);
-
-		// second screen capture after scrolling
-		b.addStatement(++i, captureTaskValue);
-		b.addStatement(++i, screenCapture);
-
-		// take the interaction to perform on the list
-		int numberOfOperations = operations.size();
-		String interaction = operations.get(numberOfOperations - 1).getName();
-		String interactionType = ViewActions.getSearchType(interaction);
-		String interactionParams = operations.get(numberOfOperations - 1).getParameter();
-
-		// if it's empty could be a check
-		if (interactionType.isEmpty())
-			// if it's not empty is a check
-			if (!ViewAssertions.getSearchType(interaction).isEmpty()) {
-				interactionType = "check";
-				interactionParams = "";
+			if (firstTest) {
+				firstTest = false;
+				b.addStatement(i, captureTask);
+				b.addStatement(++i, instrumentation);
+				b.addStatement(++i, device);
+				b.addStatement(++i, firstTestDate);
+				b.addStatement(++i, firstTestActivity);
+			} else {
+				b.addStatement(i, date);
+				b.addStatement(++i, activity);
 			}
 
-		// if the interaction is scrollTo, it is ignored because the generated code
-		// already does it
-		if (!interactionType.equals("scrollto")) {
-			log = new LogCat(methodName, "id", "\"" + listId + "\"", interactionType, interactionParams);
+			// first screen capture before scrolling
+			b.addStatement(++i, captureTaskValue);
+			b.addStatement(++i, screenCapture);
+			b.addStatement(++i, dumpScreen);
+
+			LogCat log = new LogCat(methodName, "id", "\"" + listId + "\"", "scrollto", "");
 			i = addLogInteractionToCu(log, i, b);
 
-			b.addStatement(++i, dumpScreen);
-			b.addStatement(++i, st);
-			b.addStatement(++i, tryStmt);
+			// add scrollTo test
+			b.addStatement(++i, scrollToStatement);
+
+			// add variables
+			if (!b.toString().contains("int firstVisiblePosition = 0;")) {
+				b.addStatement(++i, firstVisiblePosition);
+				b.addStatement(++i, height);
+				b.addStatement(++i, offset);
+			}
+
+			Statement scrolly = JavaParser.parseStatement("int scrolly" + listId + " = 0;");
+			if (!b.toString().contains("int scrolly" + listId + " = 0;")) {
+				b.addStatement(++i, scrolly);
+			}
+
+			// populate data in variables
+			b.addStatement(++i, populateDataFromList);
+
+			b.addStatement(++i, date);
+			// log scrollTo interaction with parameters
+			log = new LogCat(methodName, "id", "\"" + listId + "\"", "scrollto",
+					"scrolly" + listId + "+\";\"+height+\";\"+offset");
+			i = addLogInteractionToCu(log, i, b);
+
+			// second screen capture after scrolling
+			b.addStatement(++i, captureTaskValue);
+			b.addStatement(++i, screenCapture);
+
+			// take the interaction to perform on the list
+			int numberOfOperations = operations.size();
+			String interaction = operations.get(numberOfOperations - 1).getName();
+			String interactionType = ViewActions.getSearchType(interaction);
+			String interactionParams = operations.get(numberOfOperations - 1).getParameter();
+
+			// if it's empty could be a check
+			if (interactionType.isEmpty())
+				// if it's not empty is a check
+				if (!ViewAssertions.getSearchType(interaction).isEmpty()) {
+					interactionType = "check";
+					interactionParams = "";
+				}
+
+			// if the interaction is scrollTo, it is ignored because the generated code
+			// already does it
+			if (!interactionType.equals("scrollto")) {
+				log = new LogCat(methodName, "id", "\"" + listId + "\"", interactionType, interactionParams);
+				i = addLogInteractionToCu(log, i, b);
+
+				b.addStatement(++i, dumpScreen);
+				b.addStatement(++i, st);
+				b.addStatement(++i, tryStmt);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
 
 		return ++i;
@@ -889,14 +902,14 @@ public class Enhancer {
 		cu.addImport(version + "test.espresso.action.ViewActions.scrollTo", true, false);
 	}
 
-	private String getIdInAdapterView(Node inAdapterView) {
+	private String getIdInAdapterView(Node inAdapterView) throws Exception {
 		Node withIdNode = inAdapterView.getChildNodes().get(2);
 		Node resourceIdNode = withIdNode.getChildNodes().get(1);
 		Node idNode = resourceIdNode.getChildNodes().get(1);
 		return idNode.toString();
 	}
 
-	private Node getOnDataInAdapterView(Statement s) {
+	private Node getOnDataInAdapterView(Statement s) throws Exception {
 		List<Node> children = s.getChildNodes();
 		Node precPrec = null;
 		Node prec = null;

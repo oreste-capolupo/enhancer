@@ -86,6 +86,7 @@ public class Statistic {
 		statistic.put("hasType", 0);
 		statistic.put("hasValue", 0);
 		statistic.put("hasWindowLayoutParams", 0);
+		statistic.put("inAdapterView", 0);
 		statistic.put("instanceOf", 0);
 		statistic.put("is", 0);
 		statistic.put("isAbove", 0);
@@ -131,6 +132,8 @@ public class Statistic {
 		statistic.put("noMultilineButtons", 0);
 		statistic.put("noOverlaps", 0);
 		statistic.put("not", 0);
+		statistic.put("onData", 0);
+		statistic.put("onView", 0);
 		statistic.put("open", 0);
 		statistic.put("openActionBarOverflowOrOptionsMenu", 0);
 		statistic.put("openContextualActionModeOverflowMenu", 0);
