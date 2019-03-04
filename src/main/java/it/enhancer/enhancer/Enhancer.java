@@ -23,6 +23,7 @@ import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.visitor.*;
 import com.github.javaparser.printer.JsonPrinter;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
+import com.google.common.base.Stopwatch;
 
 public class Enhancer {
 
@@ -34,6 +35,25 @@ public class Enhancer {
 
 	private Map<String, Integer> statistic;
 	private String packageName;
+	
+	private String version;
+
+	private Statement captureTask = JavaParser.parseStatement("FutureTask<Boolean> capture_task = null;");
+	private Statement instrumentation = JavaParser
+			.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
+	private Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
+	private Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
+	private Statement date = JavaParser.parseStatement("now = new Date();");
+	private Statement firstTestActivity = JavaParser
+			.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
+	private Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
+	private Statement captureTaskValue = JavaParser.parseStatement(
+			"capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
+	private TryStmt screenCapture = (TryStmt) JavaParser
+			.parseStatement("try { runOnUiThread(capture_task); } catch (Throwable t) { t.printStackTrace(); }");
+	private Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
+	private TryStmt tryStmt = (TryStmt) JavaParser.parseStatement(
+			"try {\n" + "            Thread.sleep(1000);\n" + "        } catch (Exception e) {\n" + "\n" + "        }");
 
 	public Enhancer(String packageName) {
 		this.packageName = packageName;
@@ -113,13 +133,13 @@ public class Enhancer {
 
 	private void addImportsToCompilationUnit() {
 		NodeList<ImportDeclaration> imports = cu.getImports();
-		String version = "android.support.";
+		this.version = "android.support.";
 
 		for (ImportDeclaration i : imports) {
 			String name = i.getNameAsString();
-			if (name.startsWith("android.support.test.espresso"))
+			if (name.startsWith("android.support."))
 				break;
-			else if (name.startsWith("androidx.test.espresso")) {
+			else if (name.startsWith("androidx.")) {
 				version = "androidx.";
 				break;
 			}
@@ -227,8 +247,8 @@ public class Enhancer {
 			// gets onView or onData and all nested performs and checks but the last one
 			String name = j.getJSONObject("name").getString("identifier");
 
-			if (!name.equals("onView") && !name.equals("onData") && !name.equals("intended")
-					&& !name.equals("intending") && !name.equals("perform") && !name.equals("check"))
+			if (!name.equals("onView") && !name.equals("intended") && !name.equals("intending")
+					&& !name.equals("perform") && !name.equals("check"))
 				operations.add(new Operation(name, ""));
 
 			parseJsonArgument(j, null, 0);
@@ -249,8 +269,11 @@ public class Enhancer {
 				if (((JSONObject) a.get(0)).getString("type").equals("EnclosedExpr"))
 					a = new JSONArray().put(((JSONObject) a.get(0)).getJSONObject("inner"));
 
+				// parse left and right are used if there is a concatenation of strings
 				parseLeftInArgument((JSONObject) a.get(0));
 				parseRightInArgument((JSONObject) a.get(0));
+
+				// used when there are FieldAccessExpr
 				parseScopeInArgument((JSONObject) a.get(0));
 			}
 
@@ -348,6 +371,7 @@ public class Enhancer {
 
 			String parametersValue = parameters.toString();
 
+			// appends the methodCall to the Espresso command parameters
 			if ((type.equals("MethodCallExpr")) && isNotAnEspressoCommand(name)) {
 
 				if (parametersValue.isEmpty())
@@ -356,6 +380,7 @@ public class Enhancer {
 					parameters = new StringBuilder(name + "(" + parametersValue + ")");
 				field = new StringBuilder("");
 
+				// adds the Espresso command to the list of operations
 			} else if (type.equals("MethodCallExpr")) {
 				// if the command is an assertion then "order" the list
 				if (!ViewAssertions.getSearchType(name).equals("") || name.equals("allOf") || name.equals("anyOf")) {
@@ -367,7 +392,7 @@ public class Enhancer {
 				} else
 					operations.add(new Operation(name, parametersValue));
 
-				// save occurrences
+				// save occurrences for statistic
 				Integer oldStatistic = statistic.get(name);
 				statistic.put(name, oldStatistic.intValue() + 1);
 
@@ -408,6 +433,7 @@ public class Enhancer {
 
 	private void methodParameters(JSONArray a, int j) {
 		try {
+			// handles any parameter that is not a variable
 			String type = a.getJSONObject(j).getString("type");
 			String value = "";
 
@@ -575,35 +601,33 @@ public class Enhancer {
 			String json = printer.output(s);
 
 			// TEST CASES like : ViewInteraction vi = onView(withId(...)).perform(...);
-			if (json.contains("VariableDeclarator")) {
-				String type = "type";
-
-				// Substitute type with typeV to avoid key duplicate conflict
-				for (int j = -1; (j = json.indexOf(type, j + 1)) != -1; j++) {
-					String old = json.substring(j, j + 26);
-					if (old.equals("type\":\"VariableDeclarator\"")) {
-						json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" + json.substring(j + 26);
-						break;
-					}
-				}
-
-			}
+			/*
+			 * if (json.contains("VariableDeclarator")) { String type = "type";
+			 * 
+			 * // Substitute type with typeV to avoid key duplicate conflict for (int j =
+			 * -1; (j = json.indexOf(type, j + 1)) != -1; j++) { String old =
+			 * json.substring(j, j + 26); if (old.equals("type\":\"VariableDeclarator\"")) {
+			 * json = json.substring(0, j) + "typeV\": \"VariableDeclarator\"" +
+			 * json.substring(j + 26); break; } }
+			 * 
+			 * }
+			 */
 
 			try {
 				JSONObject j = new JSONObject(json);
 				// System.out.println(j.toString());
 				j = j.getJSONObject("expression");
 
-				String type = j.getString("type");
+				// String type = j.getString("type");
 
 				// vi = onView(withId(...)).perform(...);
-				if (type.equals("AssignExpr")) {
-					j = j.getJSONObject("value");
-
-					// ViewInteraction vi = onView(withId(...)).perform(...);
-				} else if (type.equals("VariableDeclarationExpr")) {
-					j = j.getJSONArray("variables").getJSONObject(0).getJSONObject("initializer");
-				}
+				/*
+				 * if (type.equals("AssignExpr")) { j = j.getJSONObject("value");
+				 * 
+				 * // ViewInteraction vi = onView(withId(...)).perform(...); } else if
+				 * (type.equals("VariableDeclarationExpr")) { j =
+				 * j.getJSONArray("variables").getJSONObject(0).getJSONObject("initializer"); }
+				 */
 
 				parseJsonScope(j);
 
@@ -620,6 +644,8 @@ public class Enhancer {
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
 			}
+
+			// handling of indipendent Espresso actions
 		} else {
 			String op = "";
 			if (stmtString.contains("closeSoftKeyboard();")) {
@@ -652,101 +678,249 @@ public class Enhancer {
 	}
 
 	private int enhanceMethod(BlockStmt b, String methodName, Statement s, int i) {
-		Statement captureTask = JavaParser.parseStatement("FutureTask<Boolean> capture_task = null;");
-		Statement instrumentation = JavaParser
-				.parseStatement("Instrumentation instr = InstrumentationRegistry.getInstrumentation();");
-		Statement device = JavaParser.parseStatement("UiDevice device = UiDevice.getInstance(instr);");
-		Statement firstTestDate = JavaParser.parseStatement("Date now = new Date();");
-		Statement date = JavaParser.parseStatement("now = new Date();");
-		Statement firstTestActivity = JavaParser
-				.parseStatement("Activity activityTOGGLETools = getActivityInstance();");
-		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
-		Statement captureTaskValue = JavaParser.parseStatement(
-				"capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
-		TryStmt screenCapture = (TryStmt) JavaParser.parseStatement(
-				"try { runOnUiThread(capture_task); } catch (Throwable t) { t.printStackTrace(); }");
-		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
-		TryStmt tryStmt = (TryStmt) JavaParser.parseStatement("try {\n" + "            Thread.sleep(1000);\n"
-				+ "        } catch (Exception e) {\n" + "\n" + "        }");
-
 		// this works on test cases with one matcher
 		String searchType = "";
 		String searchKw = "";
-		if (operations.size() > 0) {
-			searchType = ViewMatchers.getSearchType(operations.get(0).getName());
-			searchKw = operations.get(0).getParameter();
-		}
 
-		if (!searchType.isEmpty() || searchType.equals("-")) {
-			String stmtString = s.toString();
-			Statement st = JavaParser.parseStatement(stmtString);
-
-			if (operations.size() > 1)
-				b.remove(s);
-
-			for (int j = 1; j < operations.size(); j++) {
-				String interactionType = ViewActions.getSearchType(operations.get(j).getName());
-				String interactionParams = operations.get(j).getParameter();
-				/*
-				 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
-				 * " is not supported or is not an Espresso command").printStackTrace(); }
-				 */
-
-				// if (!interactionType.equals("perform") && !interactionType.equals("check")) {
-
-				if (interactionType.isEmpty()) {
-					interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
-
-					if (searchType.isEmpty() || interactionType.isEmpty()) {
-						b.addStatement(i, st);
-						break;
-					}
-
-					// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
-					// now.
-					if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
-						interactionType = "check";
-					else {
-						b.addStatement(i, st);
-						break;
-					}
-
-				}
-
-				LogCat log = new LogCat(methodName, searchType, searchKw, interactionType, interactionParams);
-
-				if (firstTest) {
-					firstTest = false;
-					b.addStatement(i, captureTask);
-					b.addStatement(++i, instrumentation);
-					b.addStatement(++i, device);
-					b.addStatement(++i, firstTestDate);
-					b.addStatement(++i, firstTestActivity);
-				} else if (j == 2 && interactionType.equals("check") || j == 1) {
-					b.addStatement(i, date);
-					b.addStatement(++i, activity);
-
-					// this makes it work on test cases with multiple interactions avoiding the try
-					// statements to stay to the bottom
-				} else {
-					b.addStatement(++i, date);
-					b.addStatement(++i, activity);
-				}
-
-				b.addStatement(++i, captureTaskValue);
-				b.addStatement(++i, screenCapture);
-
-				i = addInteractionToCu(interactionType, log, i, b);
-
-				b.addStatement(++i, dumpScreen);
-				b.addStatement(++i, st);
-				b.addStatement(++i, tryStmt);
+		// if the test is with onData the handling is different
+		if (operations.get(0).getName().equals("onData")) {
+			return enhanceMethodOnData(b, methodName, s, i);
+		} else {
+			if (operations.size() > 0) {
+				searchType = ViewMatchers.getSearchType(operations.get(0).getName());
+				searchKw = operations.get(0).getParameter();
 			}
 
+			if (!searchType.isEmpty() || searchType.equals("-")) {
+				String stmtString = s.toString();
+				Statement st = JavaParser.parseStatement(stmtString);
+
+				if (operations.size() > 1)
+					b.remove(s);
+
+				for (int j = 1; j < operations.size(); j++) {
+					String interactionType = ViewActions.getSearchType(operations.get(j).getName());
+					String interactionParams = operations.get(j).getParameter();
+					/*
+					 * if (interactionType.isEmpty()) { new Exception(operations.get(j).getName() +
+					 * " is not supported or is not an Espresso command").printStackTrace(); }
+					 */
+
+					// if (!interactionType.equals("perform") && !interactionType.equals("check")) {
+
+					if (interactionType.isEmpty()) {
+						interactionType = ViewAssertions.getSearchType(operations.get(j).getName());
+
+						if (searchType.isEmpty() || interactionType.isEmpty()) {
+							b.addStatement(i, st);
+							break;
+						}
+
+						// log only if the assertion is 'matches'. Leave out isLeft, isRight ecc... for
+						// now.
+						if (interactionType.equals("matches") && canItBeAnAssertionParameter(operations.get(++j)))
+							interactionType = "check";
+						else {
+							b.addStatement(i, st);
+							break;
+						}
+
+					}
+
+					LogCat log = new LogCat(methodName, searchType, searchKw, interactionType, interactionParams);
+
+					if (firstTest) {
+						firstTest = false;
+						b.addStatement(i, captureTask);
+						b.addStatement(++i, instrumentation);
+						b.addStatement(++i, device);
+						b.addStatement(++i, firstTestDate);
+						b.addStatement(++i, firstTestActivity);
+					} else if (j == 2 && interactionType.equals("check") || j == 1) {
+						b.addStatement(i, date);
+						b.addStatement(++i, activity);
+
+						// this makes it work on test cases with multiple interactions avoiding the try
+						// statements to stay to the bottom
+					} else {
+						b.addStatement(++i, date);
+						b.addStatement(++i, activity);
+					}
+
+					b.addStatement(++i, captureTaskValue);
+					b.addStatement(++i, screenCapture);
+
+					i = addLogInteractionToCu(log, i, b);
+
+					b.addStatement(++i, dumpScreen);
+					b.addStatement(++i, st);
+					b.addStatement(++i, tryStmt);
+				}
+
+			}
+			// }
 		}
-		// }
 
 		return ++i;
+	}
+
+	private int enhanceMethodOnData(BlockStmt b, String methodName, Statement s, int i) {
+		Statement firstVisiblePosition = JavaParser.parseStatement("int firstVisiblePosition = 0;");
+		Statement height = JavaParser.parseStatement("int height = 0;");
+		Statement offset = JavaParser.parseStatement("int offset = 0;");
+
+		
+		// get onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
+		Node inAdapterView = getOnDataInAdapterView(s);
+
+		// get 'someId' in
+		// onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
+		String listId = getIdInAdapterView(inAdapterView);
+
+		TryStmt populateDataFromList = (TryStmt) JavaParser.parseStatement("try {\r\n"
+				+ "            ListView l = activityTOGGLETools.findViewById(R.id."+listId+");\r\n"
+				+ "            int position = l.getFirstVisiblePosition() - firstVisiblePosition;\r\n"
+				+ "            firstVisiblePosition = l.getFirstVisiblePosition();\r\n"
+				+ "            View c = l.getChildAt(0);\r\n" + "            View v = l.getSelectedView();\r\n"
+				+ "            offset = v.getTop();\r\n" + "            height = c.getHeight();\r\n"
+				+ "            scrolly"+listId+"= -c.getTop() + position * height;\r\n"
+				+ "        } catch (Exception e) {\r\n" + "            try {\r\n"
+				+ "                GridView l = activityTOGGLETools.findViewById(R.id."+listId+");\r\n"
+				+ "                int position = l.getFirstVisiblePosition() - firstVisiblePosition;\r\n"
+				+ "                firstVisiblePosition = l.getFirstVisiblePosition();\r\n"
+				+ "                View c = l.getChildAt(0);\r\n" + "                View v = l.getSelectedView();\r\n"
+				+ "                offset = v.getTop();\r\n" + "                height = c.getHeight();\r\n"
+				+ "                scrolly"+listId+" = -c.getTop() + position * height;\r\n"
+				+ "            } catch (Exception e1) {\r\n" + "                // try {\r\n"
+				+ "                // Spinner s = ...;\r\n" + "                // ...\r\n"
+				+ "                // } catch (Exception ei){\r\n" + "                // try {\r\n"
+				+ "                // ...\r\n" + "                // }\r\n" + "                // }\r\n"
+				+ "            }\r\n" + "        }");
+		
+		addImportsOnData();
+		
+		String scrollToString = inAdapterView.toString() + ".perform(scrollTo());";
+		Statement scrollToStatement = JavaParser.parseStatement(scrollToString);
+
+		// remove test
+		Statement st = s;
+		b.remove(s);
+
+		if (firstTest) {
+			firstTest = false;
+			b.addStatement(i, captureTask);
+			b.addStatement(++i, instrumentation);
+			b.addStatement(++i, device);
+			b.addStatement(++i, firstTestDate);
+			b.addStatement(++i, firstTestActivity);
+		} else {
+			b.addStatement(i, date);
+			b.addStatement(++i, activity);
+		}
+
+		// first screen capture before scrolling
+		b.addStatement(++i, captureTaskValue);
+		b.addStatement(++i, screenCapture);
+		b.addStatement(++i, dumpScreen);
+
+		LogCat log = new LogCat(methodName, "id", "\"" + listId + "\"", "scrollto", "");
+		i = addLogInteractionToCu(log, i, b);
+		
+		// add scrollTo test
+		b.addStatement(++i, scrollToStatement);
+
+		// add variables
+		if (!b.toString().contains("int firstVisiblePosition = 0;")) {
+			b.addStatement(++i, firstVisiblePosition);
+			b.addStatement(++i, height);
+			b.addStatement(++i, offset);
+		}
+
+		Statement scrolly = JavaParser.parseStatement("int scrolly" + listId + " = 0;");
+		if (!b.toString().contains("int scrolly" + listId + " = 0;")) {
+			b.addStatement(++i, scrolly);
+		}
+
+		// populate data in variables
+		b.addStatement(++i, populateDataFromList);
+		
+		b.addStatement(++i, date);
+		// log scrollTo interaction with parameters
+		log = new LogCat(methodName, "id", "\"" + listId + "\"", "scrollto",
+				"scrolly" + listId + "+\";\"+height+\";\"+offset");
+		i = addLogInteractionToCu(log, i, b);
+
+		// second screen capture after scrolling
+		b.addStatement(++i, captureTaskValue);
+		b.addStatement(++i, screenCapture);
+
+		// take the interaction to perform on the list
+		int numberOfOperations = operations.size();
+		String interaction = operations.get(numberOfOperations - 1).getName();
+		String interactionType = ViewActions.getSearchType(interaction);
+		String interactionParams = operations.get(numberOfOperations - 1).getParameter();
+
+		// if it's empty could be a check
+		if (interactionType.isEmpty())
+			// if it's not empty is a check
+			if (!ViewAssertions.getSearchType(interaction).isEmpty()) {
+				interactionType = "check";
+				interactionParams = "";
+			}
+
+		// if the interaction is scrollTo, it is ignored because the generated code
+		// already does it
+		if (!interactionType.equals("scrollto")) {
+			log = new LogCat(methodName, "id", "\"" + listId + "\"", interactionType, interactionParams);
+			i = addLogInteractionToCu(log, i, b);
+
+			b.addStatement(++i, dumpScreen);
+			b.addStatement(++i, st);
+			b.addStatement(++i, tryStmt);
+		}
+
+		return ++i;
+	}
+
+	private void addImportsOnData() {
+		cu.addImport("android.widget.ListView", false, false);
+		cu.addImport("android.widget.GridView", false, false);
+		cu.addImport("android.view.View", false, false);
+		cu.addImport(version + "test.espresso.action.ViewActions.scrollTo", true, false);
+	}
+
+	private String getIdInAdapterView(Node inAdapterView) {
+		Node withIdNode = inAdapterView.getChildNodes().get(2);
+		Node resourceIdNode = withIdNode.getChildNodes().get(1);
+		Node idNode = resourceIdNode.getChildNodes().get(1);
+		return idNode.toString();
+	}
+
+	private Node getOnDataInAdapterView(Statement s) {
+		List<Node> children = s.getChildNodes();
+		Node precPrec = null;
+		Node prec = null;
+		Node c = null;
+
+		// take the node with the correct 'structure' from
+		// onData(customMatcher(...)).inAdapterView(withId(R.id.'someId').perform(...)
+		while (true) {
+			children = children.get(0).getChildNodes();
+
+			// onData(customMatcher(...)).inAdapterView(withId(R.id.'someId')
+			precPrec = prec;
+
+			// onData(customMatcher(...))
+			prec = c;
+
+			// onData
+			c = children.get(0);
+
+			if (!children.get(0).getClass().toString().endsWith("MethodCallExpr"))
+				break;
+		}
+
+		return precPrec;
 	}
 
 	private boolean canItBeAnAssertionParameter(Operation operation) {
@@ -779,7 +953,7 @@ public class Enhancer {
 		return false;
 	}
 
-	private int addInteractionToCu(String interactionType, LogCat log, int i, BlockStmt b) {
+	private int addLogInteractionToCu(LogCat log, int i, BlockStmt b) {
 		Statement l = null;
 		String stmt = "";
 
@@ -788,7 +962,7 @@ public class Enhancer {
 
 		// default handles the normal behavior of the parameters. ES: click(),
 		// typeText("TextToBeReplaced")
-		switch (interactionType) {
+		switch (log.getInteractionType()) {
 		case "replacetext":
 			// the 'i' in the variable name is used to make it unique in case we have
 			// multiple interactions of the same type
@@ -922,14 +1096,6 @@ public class Enhancer {
 	}
 
 	private void addFullCheck(BlockStmt b, String methodName, int i) {
-		Statement date = JavaParser.parseStatement("now = new Date();");
-		Statement activity = JavaParser.parseStatement("activityTOGGLETools = getActivityInstance();");
-		Statement captureTaskValue = JavaParser.parseStatement(
-				"capture_task = new FutureTask<Boolean> (new TOGGLETools.TakeScreenCaptureTask(now, activityTOGGLETools));");
-		TryStmt screenCapture = (TryStmt) JavaParser.parseStatement(
-				"try { runOnUiThread(capture_task);} catch (Throwable t) { t.printStackTrace(); }");
-		Statement dumpScreen = JavaParser.parseStatement("TOGGLETools.DumpScreen(now, device);");
-
 		Statement currDisp = JavaParser
 				.parseStatement("Rect currdisp = TOGGLETools.GetCurrentDisplaySize(activityTOGGLETools);");
 
