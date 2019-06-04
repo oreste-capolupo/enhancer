@@ -97,10 +97,13 @@ public class Enhancer {
 			// save statistic into file
 			String statisticFilename = folderPath + filename + "_Statistic.txt";
 			Statistic.writeDataToFile(statistic, statisticFilename);
-		} catch (FileNotFoundException f) {
-			System.out.println("File: " + filePath + " not found!");
-		} catch (UnsupportedEncodingException u) {
-			System.out.println("Unsupported encoding on enhanced file");
+		//} catch (FileNotFoundException f) {
+		//	System.out.println("File: " + filePath + " not found!");
+		//} catch (UnsupportedEncodingException u) {
+		//	System.out.println("Unsupported encoding on enhanced file");
+		} catch (Exception e) {
+			Utils.logException(e, "generateEnhancedClassFrom for " + filePath);
+				
 		}
 	}
 
@@ -259,6 +262,7 @@ public class Enhancer {
 			parseJsonArgument(j, null, 0);
 		} catch (JSONException e) {
 			// TODO: handle exception
+			Utils.logException(e, "parseJsonScope");
 
 		}
 	}
@@ -287,6 +291,9 @@ public class Enhancer {
 			methodOverloading(a, i);
 		} catch (JSONException e) {
 			// TODO: handle exception
+			Utils.logException(e, "parseJsonArgument");
+
+
 		}
 	}
 
@@ -301,7 +308,7 @@ public class Enhancer {
 
 			parseRightInArgument(j);
 		} catch (Exception e) {
-
+			Utils.logException(e, "parseLeftInArgument");
 		}
 	}
 
@@ -315,6 +322,8 @@ public class Enhancer {
 			// methodOverloading(new JSONArray("[" + j + "]"), 0);
 		} catch (Exception e) {
 			// TODO: handle exception
+			Utils.logException(e, "parseRightInArgument");
+
 		}
 	}
 
@@ -355,6 +364,8 @@ public class Enhancer {
 				parseScopeInArgument(j.getJSONObject("name"));
 			} catch (JSONException e2) {
 				// caught exception
+				Utils.logException(e, "parseScopeInArgument");
+
 			}
 		}
 	}
@@ -590,6 +601,8 @@ public class Enhancer {
 				methodParameters(a, ++j);
 			} catch (JSONException e1) {
 				// TODO: handle exception
+				Utils.logException(e, "methodParameters");
+
 			}
 		}
 	}
@@ -652,7 +665,9 @@ public class Enhancer {
 				return enhanceMethod(b, methodName, s, i);
 			} catch (JSONException e) {
 				// CAN'T PARSE STATEMENT
-				e.printStackTrace();
+				//e.printStackTrace();
+				Utils.logException(e, "parseStatement");
+
 			}
 
 			// handling of indipendent Espresso actions
@@ -890,6 +905,10 @@ public class Enhancer {
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
+			System.out.println("EXCEPTION IN ENHANCER!");
+			Utils.logException(e, "enhanceMethodOnData");
+
+
 		}
 
 		return ++i;

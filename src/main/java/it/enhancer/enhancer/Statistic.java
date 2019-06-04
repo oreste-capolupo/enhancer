@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FilenameUtils;
 
 public class Statistic {
+	
 
 	public static Map<String, Integer> populateInitialMap() {
 		Map<String, Integer> statistic = new TreeMap<String, Integer>();
@@ -271,12 +273,16 @@ public class Statistic {
 		}
 		s.close();
 
+		int counter = 0;
 		
 		for (String filename : list_files) {
 
-			result_csv.write(createCSVLine(starting_folder, filename));
+			System.out.println("doing" + (++counter) + " of " + list_files.size());
+			result_csv.write("\n" + createCSVLine(starting_folder, filename));
 
 		}
+		
+		result_csv.close();
 	}
 
 	// ********
@@ -315,29 +321,37 @@ public class Statistic {
 
 		String result = "";
 
-		String[] filenameparts = file_name.split("/");
-		String project_name = filenameparts[0] + "/" + filenameparts[1];
+	    String[] filenameparts = FilenameUtils.separatorsToUnix(file_name).split("/");
+	    String project_name = filenameparts[0] + "/" + filenameparts[1];
 
 		result += project_name;
 
 		result += ";" + file_name;
 
-		String statistics_file_path = FilenameUtils.separatorsToSystem(starting_folder)
-				+ FilenameUtils.removeExtension(FilenameUtils.separatorsToSystem(file_name)) + "_Statistic.txt";
+		String statistics_file_path = FilenameUtils.separatorsToSystem(starting_folder) + FilenameUtils.separatorsToSystem(file_name) + "_stats.txt";
+				//+ FilenameUtils.removeExtension(FilenameUtils.separatorsToSystem(file_name)) + "_Statistic.txt";
 
-		System.out.println("project: " + project_name);
-		System.out.println("statistics file path: " + statistics_file_path);
+		//System.out.println("project: " + project_name);
+		//System.out.println("statistics file path: " + statistics_file_path);
 
-		TreeMap<String, Integer> statistic = (TreeMap<String, Integer>) readDataFromFile(statistics_file_path);
+		try {
+			TreeMap<String, Integer> statistic = (TreeMap<String, Integer>) readDataFromFile(statistics_file_path);
 
-		for (Map.Entry<String, Integer> mapentry : statistic.entrySet()) {
+			for (Map.Entry<String, Integer> mapentry : statistic.entrySet()) {
 
-			result += ";" + mapentry.getValue();
+				result += ";" + mapentry.getValue();
+
+			}
 
 		}
+		
+		catch (Exception e ) {
+			
+			Utils.logFileException(e, statistics_file_path);
+		}
+		
 
-		System.out.println(createCSVHeader());
-
+	    //System.out.println(result);		
 		return result;
 
 	}
@@ -373,11 +387,10 @@ public class Statistic {
 			try {
 				en.generateEnhancedClassFrom(starting_folder + FilenameUtils.separatorsToSystem(filename));
 			} catch (Exception e) {
-				fr.write("Exception during examination of " + FilenameUtils.separatorsToSystem(filename) + "\n" + e.getMessage() + "\n\n\n\n");
-				
-				StringWriter sw = new StringWriter();
-				e.printStackTrace(new PrintWriter(sw));
-				fr.write(sw.toString());
+
+
+					
+				Utils.logFileException(e, FilenameUtils.separatorsToSystem(filename));
 
 			}
 
