@@ -150,7 +150,7 @@ public class Enhancer {
 		}
 
 		// imports only if it does not exist
-		cu.addImport(packageName + ".TOGGLETools", false, false);
+		//cu.addImport(packageName + ".TOGGLETools", false, false);
 		cu.addImport("java.util.Date", false, false);
 		cu.addImport("android.app.Activity", false, false);
 		cu.addImport("android.app.Instrumentation", false, false);
@@ -608,6 +608,10 @@ public class Enhancer {
 	}
 
 	private int parseStatement(BlockStmt b, String methodName, Statement s, int i) {
+		
+		
+		//System.out.println("parsing statement + " + b.toString() + " from row " + i);
+		System.out.println(s);
 		int index = i;
 		String stmtString = s.toString();
 
@@ -670,9 +674,10 @@ public class Enhancer {
 
 			}
 
-			// handling of indipendent Espresso actions
+			// handling of independent Espresso actions
 		} else {
 			String op = "";
+			String parameter = "";
 			if (stmtString.contains("closeSoftKeyboard();")) {
 				op = "closeSoftKeyboard";
 			} else if (stmtString.contains("pressBack();")) {
@@ -684,7 +689,16 @@ public class Enhancer {
 			} else if (stmtString.contains("openContextualActionModeOverflowMenu();")) {
 				op = "openContextualActionModeOverflowMenu";
 			} else if (stmtString.contains("typeTextIntoFocusedView(")) {
+				try {
 				op = "typeTextIntoFocusedView";
+				parameter = stmtString.split("typeTextIntoFocusedView\\(")[1].split("\"")[1];
+				
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				//bisogna aggiungere parametro per typetextintofocsedview prendendolo tra le due parentesi
+				
 			}
 
 			if (!op.isEmpty()) {
@@ -693,7 +707,7 @@ public class Enhancer {
 
 				// enhance interaction
 				operations.add(new Operation("blank", "-"));
-				operations.add(new Operation(op, ""));
+				operations.add(new Operation(op, parameter));
 				return enhanceMethod(b, methodName, s, i);
 			}
 
@@ -707,23 +721,76 @@ public class Enhancer {
 		String searchType = "";
 		String searchKw = "";
 
+		
+		System.out.println("OPERATION SIZE = " + operations.size());
+		for (Operation o: operations) {
+			System.out.println(o.toString());
+		}
+		
 		// if the test is with onData the handling is different
 		if (operations.get(0).getName().equals("onData")) {
 			return enhanceMethodOnData(b, methodName, s, i);
 		} else {
+			
 			if (operations.size() > 0) {
+				
 				searchType = ViewMatchers.getSearchType(operations.get(1).getName());
 				searchKw = operations.get(1).getParameter();
+				System.out.println("searchtype = " + searchType + "; - searchKw = " + searchKw);
+				
+			}
+			
+			
+			if (operations.size() == 2) {
+				//mgmt of cases like pressback
+				System.out.println("operation type = " + operations.get(1).getName());
+				String interactionType = ViewActions.getSearchType(operations.get(1).getName());
+				String interactionParams = operations.get(1).getParameter();
+
+				System.out.println("interaction type = " + interactionType);
+				System.out.println("interaction params = " + interactionParams);
+				
+				if (interactionType.equals("pressback") || interactionType.equals("typeintofocused") || interactionType.equals("closekeyboard") || 
+						interactionType.equals("pressbackunconditionally") || interactionType.equals("openactionbaroverfloworoptionsmenu") || 
+						interactionType.equals("opencontextualactionmodeoverflowmenu") || interactionType.equals("pressmenukey")) {
+					
+					searchType = "-";
+					searchKw = "-";
+					System.out.println("methodName = " + methodName + "; searchType = " + searchType + "; searchKw = " + searchKw + "; interactionType = " + interactionType + "; interactionParams = " + interactionParams);
+					LogCat log = new LogCat(methodName, searchType, searchKw, interactionType, interactionParams);
+
+					
+					String stmtString = s.toString();
+					Statement st = JavaParser.parseStatement(stmtString);
+
+					b.addStatement(i, date);
+					b.addStatement(++i, activity);
+					b.addStatement(++i, captureTaskValue);
+					b.addStatement(++i, screenCapture);
+					i = addLogInteractionToCu(log, i, b);
+					b.addStatement(++i, dumpScreen);
+					b.addStatement(++i, st);
+					b.addStatement(++i, tryStmt);
+
+
+				}
+
 			}
 
+
+
 			if (!searchType.isEmpty() || searchType.equals("-")) {
+				
 				String stmtString = s.toString();
 				Statement st = JavaParser.parseStatement(stmtString);
 
-				if (operations.size() > 1)
+				if (operations.size() > 1) {
 					b.remove(s);
-
+				}
+					
+				
 				for (int j = 2; j < operations.size(); j++) {
+					
 					String interactionType = ViewActions.getSearchType(operations.get(j).getName());
 					String interactionParams = operations.get(j).getParameter();
 					/*
@@ -752,8 +819,12 @@ public class Enhancer {
 
 					}
 
+					
+					System.out.println("logcatting: methodname = " + methodName + "; searchType = " + searchType + "; searchKw = " + searchKw + "; interactionType = " + interactionType + "; interactionParams = " + interactionParams);
 					LogCat log = new LogCat(methodName, searchType, searchKw, interactionType, interactionParams);
 
+					
+					
 					if (firstTest) {
 						firstTest = false;
 						b.addStatement(i, captureTask);
@@ -1105,10 +1176,18 @@ public class Enhancer {
 		case "closekeyboard":
 		case "openactionbaroverfloworoptionsmenu":
 		case "opencontextualactionmodeoverflowmenu":
-		case "typeintofocused":
 			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\","
 					+ "\"-\", \"-\"," + "\"" + log.getInteractionType() + "\"" + ");");
 			break;
+			
+			
+		case "typeintofocused":
+			
+			System.out.println(log.getInteractionParams());
+			l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now, " + "\"" + log.getMethodName() + "\","
+					+ "\"-\", \"-\"," + "\"" + log.getInteractionType() + "\", \"" + log.getInteractionParams() + "\"" + ");");
+			break;
+
 		default:
 			if (log.getInteractionParams().isEmpty())
 				l = JavaParser.parseStatement("TOGGLETools.LogInteraction(now," + "\"" + log.getMethodName() + "\","

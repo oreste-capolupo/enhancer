@@ -13,12 +13,25 @@ public class Main {
 		
 		//en.generateEnhancedClassFrom("/home/oreste/eclipse-workspace/Enhancer/enhancer/files/BaseEspressoTest.java");
 		
+		
+		//en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\StudioProjects\\PassAndroid-2.5.0_oldgraphics\\PassAndroid-2.5.0\\app\\src\\androidTest\\java\\org\\ligi\\passandroid\\TestCreatePassTabsTry.java");
+		
+		//en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\StudioProjects\\Omni-Notes-develop_oldgraphics\\Omni-Notes-develop\\omniNotes\\src\\androidTest\\java\\it\\feio\\android\\omninotes\\TestHomeTry.java");
+		en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\MiMangaNu-master_oldgraphics\\MiMangaNu-master\\app\\src\\androidTest\\java\\ar\\rulosoft\\mimanganu\\TestInterfaceBasicTry.java");
+
+		
+		
 		//Statistic.statisticsOnListOfFiles("F:\\results_msr\\sorted_file_names.txt", "F:\\Espresso_new_projects\\espresso\\");
 	    //Statistic.createCSVLine("F:\\Espresso_new_projects\\espresso\\", "ArunaMahaGamage/edx-app-android-master-current/OpenEdXMobile/src/androidTest/java/org/edx/mobile/test/feature/interactor/RegistrationScreenInteractor.java");
-	    Statistic.createCSV("H:\\Espresso_new_projects\\espresso\\", "H:\\results_msr\\sorted_file_names.txt");
-		
-		/*en.generateEnhancedClassFrom("C:\\Users\\Utente\\Desktop\\k-9-5.600\\k9mail\\src\\androidTest\\java\\com\\fsck\\k9\\AuthTest.java");
-		en.generateEnhancedClassFrom("C:\\Users\\Utente\\Downloads\\only_test_classes\\Bondes87\\ShppCourseAndroid\\Bondes87_ShppCourseAndroid_PersonalNotes_app_src_androidTest_java_com_dbondarenko_shpp_personalnotes_BaseUITest.java.java");*/
+	    //Statistic.createCSV("H:\\Espresso_new_projects\\espresso\\", "H:\\results_msr\\sorted_file_names.txt");
+		//en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\MiMangaNu-master\\app\\src\\androidTest\\java\\ar\\rulosoft\\mimanganu\\TestInterfaceBasic.java");
+
+		//en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\MiMangaNu-master\\app\\src\\androidTest\\java\\ar\\rulosoft\\mimanganu\\TestAdvancedFeatures.java");
+		/*en.generateEnhancedClassFrom("C:\\Users\\Utente\\Downloads\\only_test_classes\\Bondes87\\ShppCourseAndroid\\Bondes87_ShppCourseAndroid_PersonalNotes_app_src_androidTest_java_com_dbondarenko_shpp_personalnotes_BaseUITest.java.java");
+		en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\MiMangaNu-master\\app\\src\\androidTest\\java\\ar\\rulosoft\\mimanganu\\TestReadUnreadChapter.java");
+		en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\MiMangaNu-master\\app\\src\\androidTest\\java\\ar\\rulosoft\\mimanganu\\TestSortChaptersDelete.java");
+		en.generateEnhancedClassFrom("C:\\Users\\Riccardo Coppola\\MiMangaNu-master\\app\\src\\androidTest\\java\\ar\\rulosoft\\mimanganu\\TestAdvancedFeatures.java");*/
+
 		
 		
 		/*en.generateEnhancedClassFrom("/home/oreste/Scaricati/ThePassEditActivity.java");
